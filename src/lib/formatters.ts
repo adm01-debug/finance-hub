@@ -67,6 +67,15 @@ export const getDaysOverdue = (date: Date | string): number => {
   return days < 0 ? Math.abs(days) : 0;
 };
 
+export const calculateOverdueDays = (date: Date | string): number => {
+  const d = typeof date === 'string' ? new Date(date) : new Date(date);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  d.setHours(0, 0, 0, 0);
+  const diff = today.getTime() - d.getTime();
+  return Math.floor(diff / (1000 * 60 * 60 * 24));
+};
+
 export const getRelativeTime = (date: Date | string): string => {
   const d = typeof date === 'string' ? new Date(date) : date;
   const now = new Date();
