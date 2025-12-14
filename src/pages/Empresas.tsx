@@ -1,0 +1,544 @@
+import { useState } from 'react';
+import { motion } from 'framer-motion';
+import { 
+  Building2, 
+  Plus, 
+  Search,
+  MoreVertical,
+  Edit,
+  Trash2,
+  CheckCircle2,
+  XCircle,
+  FileText,
+  CreditCard,
+  TrendingUp,
+  TrendingDown,
+  Users,
+  MapPin,
+  Phone,
+  Mail,
+  Globe,
+  Copy,
+  ExternalLink,
+  Star,
+  StarOff
+} from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { mockCNPJs, mockContasBancarias, mockContasReceber, mockContasPagar } from '@/data/mockData';
+import { CNPJ } from '@/types/financial';
+import { formatCurrency } from '@/lib/formatters';
+import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1 }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 }
+};
+
+export default function Empresas() {
+  const [empresas, setEmpresas] = useState<CNPJ[]>(mockCNPJs);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedEmpresa, setSelectedEmpresa] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
+  const { toast } = useToast();
+
+  const empresasFiltradas = empresas.filter(e => 
+    e.razaoSocial.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    e.nomeFantasia.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    e.cnpj.includes(searchTerm)
+  );
+
+  const getEmpresaStats = (cnpjId: string) => {
+    const contas = mockContasBancarias.filter(c => c.cnpjId === cnpjId);
+    const receber = mockContasReceber.filter(c => c.cnpjId === cnpjId);
+    const pagar = mockContasPagar.filter(c => c.cnpjId === cnpjId);
+    
+    return {
+      saldoTotal: contas.reduce((acc, c) => acc + c.saldoAtual, 0),
+      contasBancarias: contas.length,
+      aReceber: receber.reduce((acc, c) => acc + c.valor, 0),
+      aPagar: pagar.reduce((acc, c) => acc + c.valor, 0),
+      titulosReceber: receber.length,
+      titulosPagar: pagar.length
+    };
+  };
+
+  const consolidado = {
+    saldoTotal: empresas.reduce((acc, e) => acc + getEmpresaStats(e.id).saldoTotal, 0),
+    totalReceber: empresas.reduce((acc, e) => acc + getEmpresaStats(e.id).aReceber, 0),
+    totalPagar: empresas.reduce((acc, e) => acc + getEmpresaStats(e.id).aPagar, 0),
+    empresasAtivas: empresas.filter(e => e.ativo).length
+  };
+
+  const formatCNPJ = (cnpj: string) => {
+    return cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5');
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast({
+      title: "Copiado!",
+      description: "CNPJ copiado para a área de transferência",
+    });
+  };
+
+  const toggleFavorite = (id: string) => {
+    // Simulated favorite toggle
+    toast({
+      title: "Empresa marcada como favorita",
+      description: "Esta empresa será exibida primeiro na lista",
+    });
+  };
+
+  const toggleAtivo = (id: string) => {
+    setEmpresas(prev => prev.map(e => 
+      e.id === id ? { ...e, ativo: !e.ativo } : e
+    ));
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Empresas (CNPJs)</h1>
+          <p className="text-muted-foreground">
+            Gerencie múltiplas empresas e consolide dados financeiros
+          </p>
+        </div>
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Nova Empresa
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Cadastrar Nova Empresa</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label>CNPJ</Label>
+                  <Input placeholder="00.000.000/0000-00" />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Inscrição Estadual</Label>
+                  <Input placeholder="000.000.000.000" />
+                </div>
+              </div>
+              <div className="grid gap-2">
+                <Label>Razão Social</Label>
+                <Input placeholder="Razão Social da Empresa LTDA" />
+              </div>
+              <div className="grid gap-2">
+                <Label>Nome Fantasia</Label>
+                <Input placeholder="Nome Fantasia" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label>Telefone</Label>
+                  <Input placeholder="(00) 0000-0000" />
+                </div>
+                <div className="grid gap-2">
+                  <Label>E-mail</Label>
+                  <Input type="email" placeholder="contato@empresa.com" />
+                </div>
+              </div>
+              <div className="grid gap-2">
+                <Label>Endereço</Label>
+                <Input placeholder="Rua, Número, Bairro - Cidade/UF" />
+              </div>
+              <div className="flex items-center justify-between pt-2">
+                <div className="flex items-center gap-2">
+                  <Switch id="ativo" defaultChecked />
+                  <Label htmlFor="ativo">Empresa Ativa</Label>
+                </div>
+                <Button className="w-32">Cadastrar</Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {/* KPIs Consolidados */}
+      <motion.div 
+        className="grid grid-cols-1 md:grid-cols-4 gap-4"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.div variants={itemVariants}>
+          <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Saldo Consolidado</p>
+                  <p className="text-2xl font-bold">{formatCurrency(consolidado.saldoTotal)}</p>
+                </div>
+                <div className="p-3 rounded-full bg-primary/20">
+                  <Building2 className="h-5 w-5 text-primary" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div variants={itemVariants}>
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Total a Receber</p>
+                  <p className="text-2xl font-bold text-green-600">{formatCurrency(consolidado.totalReceber)}</p>
+                </div>
+                <div className="p-3 rounded-full bg-green-100 dark:bg-green-900/30">
+                  <TrendingUp className="h-5 w-5 text-green-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div variants={itemVariants}>
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Total a Pagar</p>
+                  <p className="text-2xl font-bold text-red-500">{formatCurrency(consolidado.totalPagar)}</p>
+                </div>
+                <div className="p-3 rounded-full bg-red-100 dark:bg-red-900/30">
+                  <TrendingDown className="h-5 w-5 text-red-500" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div variants={itemVariants}>
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Empresas Ativas</p>
+                  <p className="text-2xl font-bold">{consolidado.empresasAtivas}</p>
+                  <p className="text-xs text-muted-foreground">de {empresas.length} cadastradas</p>
+                </div>
+                <div className="p-3 rounded-full bg-blue-100 dark:bg-blue-900/30">
+                  <Users className="h-5 w-5 text-blue-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </motion.div>
+
+      {/* Filtros e Busca */}
+      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+        <div className="relative w-full sm:w-96">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por CNPJ, razão social ou nome fantasia..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as 'cards' | 'table')}>
+          <TabsList>
+            <TabsTrigger value="cards">Cards</TabsTrigger>
+            <TabsTrigger value="table">Tabela</TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
+
+      {/* Lista de Empresas - Cards */}
+      {viewMode === 'cards' && (
+        <motion.div 
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          {empresasFiltradas.map((empresa) => {
+            const stats = getEmpresaStats(empresa.id);
+            
+            return (
+              <motion.div key={empresa.id} variants={itemVariants}>
+                <Card className={cn(
+                  "relative overflow-hidden transition-all hover:shadow-lg",
+                  !empresa.ativo && "opacity-60",
+                  selectedEmpresa === empresa.id && "ring-2 ring-primary"
+                )}>
+                  <div className={cn(
+                    "absolute top-0 left-0 right-0 h-1",
+                    empresa.ativo ? "bg-green-500" : "bg-gray-400"
+                  )} />
+                  
+                  <CardHeader className="pb-2">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <CardTitle className="text-lg line-clamp-1">{empresa.nomeFantasia}</CardTitle>
+                        <p className="text-xs text-muted-foreground line-clamp-1">{empresa.razaoSocial}</p>
+                      </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="bg-popover">
+                          <DropdownMenuItem onClick={() => setSelectedEmpresa(empresa.id)}>
+                            <CheckCircle2 className="h-4 w-4 mr-2" />
+                            Selecionar Contexto
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => toggleFavorite(empresa.id)}>
+                            <Star className="h-4 w-4 mr-2" />
+                            Favoritar
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem>
+                            <Edit className="h-4 w-4 mr-2" />
+                            Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>
+                            <FileText className="h-4 w-4 mr-2" />
+                            Ver Documentos
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem 
+                            onClick={() => toggleAtivo(empresa.id)}
+                            className={empresa.ativo ? "text-destructive" : "text-green-600"}
+                          >
+                            {empresa.ativo ? (
+                              <>
+                                <XCircle className="h-4 w-4 mr-2" />
+                                Desativar
+                              </>
+                            ) : (
+                              <>
+                                <CheckCircle2 className="h-4 w-4 mr-2" />
+                                Ativar
+                              </>
+                            )}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </CardHeader>
+
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <Badge 
+                        variant="outline" 
+                        className="font-mono text-xs cursor-pointer hover:bg-muted"
+                        onClick={() => copyToClipboard(empresa.cnpj)}
+                      >
+                        {formatCNPJ(empresa.cnpj)}
+                        <Copy className="h-3 w-3 ml-1" />
+                      </Badge>
+                      <Badge variant={empresa.ativo ? "default" : "secondary"}>
+                        {empresa.ativo ? "Ativa" : "Inativa"}
+                      </Badge>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 pt-2">
+                      <div className="text-center p-3 rounded-lg bg-muted/50">
+                        <p className="text-lg font-bold text-green-600">{formatCurrency(stats.aReceber)}</p>
+                        <p className="text-xs text-muted-foreground">A Receber ({stats.titulosReceber})</p>
+                      </div>
+                      <div className="text-center p-3 rounded-lg bg-muted/50">
+                        <p className="text-lg font-bold text-red-500">{formatCurrency(stats.aPagar)}</p>
+                        <p className="text-xs text-muted-foreground">A Pagar ({stats.titulosPagar})</p>
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <CreditCard className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm">{stats.contasBancarias} conta{stats.contasBancarias !== 1 ? 's' : ''}</span>
+                        </div>
+                        <p className="text-sm font-medium">{formatCurrency(stats.saldoTotal)}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            );
+          })}
+
+          {/* Card para adicionar nova empresa */}
+          <motion.div variants={itemVariants}>
+            <Card 
+              className="border-dashed hover:border-primary/50 transition-colors cursor-pointer h-full min-h-[280px] flex items-center justify-center"
+              onClick={() => setDialogOpen(true)}
+            >
+              <CardContent className="flex flex-col items-center justify-center text-center p-6">
+                <div className="p-4 rounded-full bg-muted mb-4">
+                  <Plus className="h-8 w-8 text-muted-foreground" />
+                </div>
+                <h3 className="font-medium text-muted-foreground">Adicionar Nova Empresa</h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Cadastre um novo CNPJ
+                </p>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </motion.div>
+      )}
+
+      {/* Lista de Empresas - Tabela */}
+      {viewMode === 'table' && (
+        <Card>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Empresa</TableHead>
+                <TableHead>CNPJ</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Saldo</TableHead>
+                <TableHead className="text-right">A Receber</TableHead>
+                <TableHead className="text-right">A Pagar</TableHead>
+                <TableHead className="w-12"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {empresasFiltradas.map((empresa) => {
+                const stats = getEmpresaStats(empresa.id);
+                
+                return (
+                  <TableRow 
+                    key={empresa.id}
+                    className={cn(
+                      !empresa.ativo && "opacity-60",
+                      selectedEmpresa === empresa.id && "bg-primary/5"
+                    )}
+                  >
+                    <TableCell>
+                      <div>
+                        <p className="font-medium">{empresa.nomeFantasia}</p>
+                        <p className="text-xs text-muted-foreground">{empresa.razaoSocial}</p>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge 
+                        variant="outline" 
+                        className="font-mono text-xs cursor-pointer"
+                        onClick={() => copyToClipboard(empresa.cnpj)}
+                      >
+                        {formatCNPJ(empresa.cnpj)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={empresa.ativo ? "default" : "secondary"}>
+                        {empresa.ativo ? "Ativa" : "Inativa"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right font-medium">
+                      {formatCurrency(stats.saldoTotal)}
+                    </TableCell>
+                    <TableCell className="text-right text-green-600">
+                      {formatCurrency(stats.aReceber)}
+                    </TableCell>
+                    <TableCell className="text-right text-red-500">
+                      {formatCurrency(stats.aPagar)}
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="bg-popover">
+                          <DropdownMenuItem onClick={() => setSelectedEmpresa(empresa.id)}>
+                            <CheckCircle2 className="h-4 w-4 mr-2" />
+                            Selecionar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>
+                            <Edit className="h-4 w-4 mr-2" />
+                            Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => toggleAtivo(empresa.id)}
+                            className={empresa.ativo ? "text-destructive" : "text-green-600"}
+                          >
+                            {empresa.ativo ? "Desativar" : "Ativar"}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </Card>
+      )}
+
+      {/* Contexto Selecionado */}
+      {selectedEmpresa && (
+        <Card className="border-primary/50 bg-primary/5">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-primary/20">
+                  <Building2 className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Contexto Ativo</p>
+                  <p className="font-medium">
+                    {empresas.find(e => e.id === selectedEmpresa)?.nomeFantasia}
+                  </p>
+                </div>
+              </div>
+              <Button variant="outline" size="sm" onClick={() => setSelectedEmpresa(null)}>
+                Limpar Contexto
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
