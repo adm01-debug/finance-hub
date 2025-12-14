@@ -19,6 +19,7 @@ import Configuracoes from "./pages/Configuracoes";
 import Bitrix24 from "./pages/Bitrix24";
 import Relatorios from "./pages/Relatorios";
 import Boletos from "./pages/Boletos";
+import NotasFiscais from "./pages/NotasFiscais";
 
 const queryClient = new QueryClient();
 
@@ -44,6 +45,7 @@ const App = () => (
           <Route path="/bitrix24" element={<Bitrix24 />} />
           <Route path="/relatorios" element={<Relatorios />} />
           <Route path="/boletos" element={<Boletos />} />
+          <Route path="/notas-fiscais" element={<NotasFiscais />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
