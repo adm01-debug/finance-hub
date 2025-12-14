@@ -45,6 +45,41 @@ export interface SefazHealthStatus {
   averageResponseTime: number;
 }
 
+// Regras de contingência automática
+export interface ContingencyRule {
+  id: string;
+  name: string;
+  enabled: boolean;
+  type: 'failure_count' | 'latency' | 'schedule' | 'time_window';
+  mode: ContingencyMode;
+  config: {
+    // Para failure_count
+    maxFailures?: number;
+    // Para latency
+    maxLatency?: number; // em ms
+    // Para schedule (horários específicos)
+    scheduleStart?: string; // HH:mm
+    scheduleEnd?: string; // HH:mm
+    scheduleDays?: number[]; // 0-6 (domingo-sábado)
+    // Para time_window (janela de indisponibilidade)
+    downtimeMinutes?: number;
+  };
+  reason: string;
+  priority: number; // Menor = maior prioridade
+  createdAt: Date;
+  lastTriggered?: Date;
+}
+
+export interface AutoContingencyConfig {
+  enabled: boolean;
+  rules: ContingencyRule[];
+  checkIntervalSeconds: number;
+  notifyOnActivation: boolean;
+  notifyOnDeactivation: boolean;
+  autoDeactivateWhenOnline: boolean;
+  autoDeactivateDelayMinutes: number;
+}
+
 // Códigos de tipo de emissão (tpEmis) da NF-e
 export const TIPO_EMISSAO = {
   normal: { code: '1', label: 'Normal', description: 'Emissão normal com autorização SEFAZ' },
@@ -84,6 +119,69 @@ const initialState: ContingencyState = {
 // Armazenamento local
 const STORAGE_KEY = 'sefaz_contingency_state';
 const HEALTH_KEY = 'sefaz_health_status';
+const RULES_KEY = 'sefaz_contingency_rules';
+
+// Regras padrão
+const defaultRules: ContingencyRule[] = [
+  {
+    id: 'rule_failures_3',
+    name: 'Falhas consecutivas (3x)',
+    enabled: true,
+    type: 'failure_count',
+    mode: 'offline',
+    config: { maxFailures: 3 },
+    reason: 'Ativação automática: 3 falhas consecutivas de comunicação',
+    priority: 1,
+    createdAt: new Date(),
+  },
+  {
+    id: 'rule_latency_high',
+    name: 'Latência alta (>5s)',
+    enabled: false,
+    type: 'latency',
+    mode: 'SVCAN',
+    config: { maxLatency: 5000 },
+    reason: 'Ativação automática: latência superior a 5 segundos',
+    priority: 2,
+    createdAt: new Date(),
+  },
+  {
+    id: 'rule_maintenance_window',
+    name: 'Janela de manutenção SEFAZ',
+    enabled: false,
+    type: 'schedule',
+    mode: 'offline',
+    config: { 
+      scheduleStart: '00:00', 
+      scheduleEnd: '06:00',
+      scheduleDays: [0] // Domingo
+    },
+    reason: 'Ativação automática: janela de manutenção programada',
+    priority: 3,
+    createdAt: new Date(),
+  },
+  {
+    id: 'rule_downtime_10min',
+    name: 'Indisponibilidade prolongada (10min)',
+    enabled: false,
+    type: 'time_window',
+    mode: 'offline',
+    config: { downtimeMinutes: 10 },
+    reason: 'Ativação automática: SEFAZ indisponível por mais de 10 minutos',
+    priority: 4,
+    createdAt: new Date(),
+  },
+];
+
+const defaultAutoConfig: AutoContingencyConfig = {
+  enabled: true,
+  rules: defaultRules,
+  checkIntervalSeconds: 30,
+  notifyOnActivation: true,
+  notifyOnDeactivation: true,
+  autoDeactivateWhenOnline: true,
+  autoDeactivateDelayMinutes: 5,
+};
 
 // Obter estado atual da contingência
 export function getContingencyState(): ContingencyState {
@@ -296,6 +394,209 @@ export async function checkSefazHealth(): Promise<SefazHealthStatus> {
   }
   
   return status;
+}
+
+// Obter configuração de contingência automática
+export function getAutoContingencyConfig(): AutoContingencyConfig {
+  try {
+    const stored = localStorage.getItem(RULES_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      return {
+        ...parsed,
+        rules: parsed.rules.map((rule: any) => ({
+          ...rule,
+          createdAt: new Date(rule.createdAt),
+          lastTriggered: rule.lastTriggered ? new Date(rule.lastTriggered) : undefined,
+        })),
+      };
+    }
+  } catch (error) {
+    console.error('[Contingência] Erro ao carregar configuração automática:', error);
+  }
+  return defaultAutoConfig;
+}
+
+// Salvar configuração de contingência automática
+export function saveAutoContingencyConfig(config: AutoContingencyConfig): void {
+  try {
+    localStorage.setItem(RULES_KEY, JSON.stringify(config));
+  } catch (error) {
+    console.error('[Contingência] Erro ao salvar configuração automática:', error);
+  }
+}
+
+// Adicionar nova regra
+export function addContingencyRule(rule: Omit<ContingencyRule, 'id' | 'createdAt'>): ContingencyRule {
+  const config = getAutoContingencyConfig();
+  const newRule: ContingencyRule = {
+    ...rule,
+    id: `rule_${Date.now()}`,
+    createdAt: new Date(),
+  };
+  config.rules.push(newRule);
+  saveAutoContingencyConfig(config);
+  return newRule;
+}
+
+// Atualizar regra existente
+export function updateContingencyRule(id: string, updates: Partial<ContingencyRule>): void {
+  const config = getAutoContingencyConfig();
+  const index = config.rules.findIndex(r => r.id === id);
+  if (index >= 0) {
+    config.rules[index] = { ...config.rules[index], ...updates };
+    saveAutoContingencyConfig(config);
+  }
+}
+
+// Remover regra
+export function deleteContingencyRule(id: string): void {
+  const config = getAutoContingencyConfig();
+  config.rules = config.rules.filter(r => r.id !== id);
+  saveAutoContingencyConfig(config);
+}
+
+// Verificar se está dentro de uma janela de horário
+function isWithinSchedule(rule: ContingencyRule): boolean {
+  if (rule.type !== 'schedule' || !rule.config.scheduleStart || !rule.config.scheduleEnd) {
+    return false;
+  }
+
+  const now = new Date();
+  const currentDay = now.getDay();
+  const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+  // Verificar dia da semana
+  if (rule.config.scheduleDays && !rule.config.scheduleDays.includes(currentDay)) {
+    return false;
+  }
+
+  // Verificar horário
+  const { scheduleStart, scheduleEnd } = rule.config;
+  
+  // Lidar com janelas que cruzam meia-noite
+  if (scheduleStart <= scheduleEnd) {
+    return currentTime >= scheduleStart && currentTime <= scheduleEnd;
+  } else {
+    return currentTime >= scheduleStart || currentTime <= scheduleEnd;
+  }
+}
+
+// Avaliar regras e determinar se contingência deve ser ativada
+export function evaluateContingencyRules(): { 
+  shouldActivate: boolean; 
+  triggeredRule: ContingencyRule | null;
+  reason: string;
+} {
+  const config = getAutoContingencyConfig();
+  const state = getContingencyState();
+  const health = getSefazHealthStatus();
+
+  if (!config.enabled || state.mode !== 'normal') {
+    return { shouldActivate: false, triggeredRule: null, reason: '' };
+  }
+
+  // Ordenar regras por prioridade
+  const enabledRules = config.rules
+    .filter(r => r.enabled)
+    .sort((a, b) => a.priority - b.priority);
+
+  for (const rule of enabledRules) {
+    let triggered = false;
+
+    switch (rule.type) {
+      case 'failure_count':
+        if (rule.config.maxFailures && health.consecutiveFailures >= rule.config.maxFailures) {
+          triggered = true;
+        }
+        break;
+
+      case 'latency':
+        if (rule.config.maxLatency && health.latency > rule.config.maxLatency) {
+          triggered = true;
+        }
+        break;
+
+      case 'schedule':
+        triggered = isWithinSchedule(rule);
+        break;
+
+      case 'time_window':
+        if (rule.config.downtimeMinutes && state.lastFailure) {
+          const downtimeMs = Date.now() - state.lastFailure.getTime();
+          const downtimeMinutes = downtimeMs / (1000 * 60);
+          if (!health.online && downtimeMinutes >= rule.config.downtimeMinutes) {
+            triggered = true;
+          }
+        }
+        break;
+    }
+
+    if (triggered) {
+      // Atualizar lastTriggered
+      updateContingencyRule(rule.id, { lastTriggered: new Date() });
+      return { shouldActivate: true, triggeredRule: rule, reason: rule.reason };
+    }
+  }
+
+  return { shouldActivate: false, triggeredRule: null, reason: '' };
+}
+
+// Verificar se deve desativar automaticamente
+export function shouldAutoDeactivate(): boolean {
+  const config = getAutoContingencyConfig();
+  const state = getContingencyState();
+  const health = getSefazHealthStatus();
+
+  if (!config.autoDeactivateWhenOnline || !state.autoActivated || state.mode === 'normal') {
+    return false;
+  }
+
+  // Verificar se SEFAZ está online há tempo suficiente
+  if (!health.online) {
+    return false;
+  }
+
+  // Verificar se há NF-e pendentes
+  if (state.pendingNFes.some(n => n.status === 'pendente')) {
+    return false;
+  }
+
+  // Verificar delay de desativação
+  const onlineFor = (Date.now() - health.lastCheck.getTime()) / (1000 * 60);
+  return onlineFor >= config.autoDeactivateDelayMinutes;
+}
+
+// Executar verificação automática de contingência
+export async function runAutoContingencyCheck(): Promise<{
+  action: 'activated' | 'deactivated' | 'none';
+  rule?: ContingencyRule;
+  newState?: ContingencyState;
+}> {
+  // Primeiro verificar saúde da SEFAZ
+  await checkSefazHealth();
+
+  // Avaliar regras
+  const evaluation = evaluateContingencyRules();
+  
+  if (evaluation.shouldActivate && evaluation.triggeredRule) {
+    const newState = activateContingency(
+      evaluation.triggeredRule.mode,
+      evaluation.reason,
+      'Sistema (Automático)',
+      undefined,
+      true
+    );
+    return { action: 'activated', rule: evaluation.triggeredRule, newState };
+  }
+
+  // Verificar se deve desativar
+  if (shouldAutoDeactivate()) {
+    const newState = deactivateContingency();
+    return { action: 'deactivated', newState };
+  }
+
+  return { action: 'none' };
 }
 
 // Obter estatísticas de contingência
