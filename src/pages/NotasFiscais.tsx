@@ -51,7 +51,8 @@ import { toast } from 'sonner';
 import { processarSefaz, NFEData, SefazResponse, SEFAZ_STATUS } from '@/lib/sefaz-simulator';
 import { registrarEvento } from '@/lib/sefaz-event-logger';
 import { EventosHistorico } from '@/components/nfe/EventosHistorico';
-import { History } from 'lucide-react';
+import { CancelamentoNFe } from '@/components/nfe/CancelamentoNFe';
+import { History, Ban } from 'lucide-react';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -916,10 +917,20 @@ export default function NotasFiscais() {
   const [showNovaNFe, setShowNovaNFe] = useState(false);
   const [notas, setNotas] = useState<NotaFiscal[]>(mockNotasFiscais);
   const [isConsultando, setIsConsultando] = useState(false);
+  const [notaCancelar, setNotaCancelar] = useState<NotaFiscal | null>(null);
 
   const handleNovaNota = useCallback((novaNota: NotaFiscal) => {
     setNotas(prev => [novaNota, ...prev]);
     setShowNovaNFe(false);
+  }, []);
+
+  const handleCancelarNota = useCallback((notaId: string, justificativa: string) => {
+    setNotas(prev => prev.map(nota => 
+      nota.id === notaId 
+        ? { ...nota, status: 'cancelada' as const, motivoCancelamento: justificativa }
+        : nota
+    ));
+    setNotaCancelar(null);
   }, []);
 
   const handleConsultarSefaz = useCallback(async () => {
@@ -1194,6 +1205,17 @@ export default function NotasFiscais() {
                             >
                               <Download className="h-4 w-4" />
                             </Button>
+                            {nota.status === 'autorizada' && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setNotaCancelar(nota)}
+                                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                title="Cancelar NF-e"
+                              >
+                                <Ban className="h-4 w-4" />
+                              </Button>
+                            )}
                           </div>
                         </div>
                       </motion.div>
@@ -1267,6 +1289,25 @@ export default function NotasFiscais() {
             </TabsContent>
           </Tabs>
         </motion.div>
+
+        {/* Dialog de Cancelamento */}
+        <Dialog open={!!notaCancelar} onOpenChange={(open) => !open && setNotaCancelar(null)}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-destructive">
+                <Ban className="h-5 w-5" />
+                Cancelar NF-e
+              </DialogTitle>
+            </DialogHeader>
+            {notaCancelar && (
+              <CancelamentoNFe
+                nota={notaCancelar}
+                onClose={() => setNotaCancelar(null)}
+                onSuccess={handleCancelarNota}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
       </motion.div>
     </MainLayout>
   );
