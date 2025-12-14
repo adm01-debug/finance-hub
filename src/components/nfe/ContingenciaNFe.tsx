@@ -10,6 +10,7 @@ import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Dialog,
   DialogContent,
@@ -38,6 +39,8 @@ import {
   Settings,
   History,
   Loader2,
+  Settings2,
+  Sparkles,
 } from 'lucide-react';
 import { formatCurrency, formatDateTime } from '@/lib/formatters';
 import { toast } from 'sonner';
@@ -56,8 +59,11 @@ import {
   getContingencyStats,
   updatePendingNFe,
   removePendingNFe,
+  getAutoContingencyConfig,
+  runAutoContingencyCheck,
 } from '@/lib/sefaz-contingency';
 import { registrarEvento } from '@/lib/sefaz-event-logger';
+import { AutoContingenciaConfig } from './AutoContingenciaConfig';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -90,6 +96,8 @@ export function ContingenciaNFe() {
   const [showActivateDialog, setShowActivateDialog] = useState(false);
   const [showDeactivateDialog, setShowDeactivateDialog] = useState(false);
   const [autoCheck, setAutoCheck] = useState(true);
+  const [activeTab, setActiveTab] = useState('status');
+  const autoConfig = getAutoContingencyConfig();
   
   // Formulário de ativação
   const [selectedMode, setSelectedMode] = useState<ContingencyMode>('offline');
@@ -100,18 +108,44 @@ export function ContingenciaNFe() {
   const stats = getContingencyStats();
   const isContingencyActive = state.mode !== 'normal';
 
-  // Verificação automática de saúde
+  // Verificação automática de saúde com regras
   useEffect(() => {
     if (!autoCheck) return;
     
     const interval = setInterval(async () => {
-      const newHealth = await checkSefazHealth();
-      setHealth(newHealth);
+      const result = await runAutoContingencyCheck();
+      setHealth(getSefazHealthStatus());
       setState(getContingencyState());
-    }, 30000); // A cada 30 segundos
+      
+      if (result.action === 'activated' && result.rule) {
+        registrarEvento({
+          tipo: 'CONTINGENCIA',
+          cStat: 'CONT_AUTO_ATIVADA',
+          xMotivo: `Contingência automática: ${result.rule.name}`,
+          detalhes: result.rule.reason,
+          ambiente: 'homologacao',
+        });
+        
+        if (autoConfig.notifyOnActivation) {
+          toast.warning(`Contingência automática ativada: ${result.rule.name}`);
+        }
+      } else if (result.action === 'deactivated') {
+        registrarEvento({
+          tipo: 'CONTINGENCIA',
+          cStat: 'CONT_AUTO_DESATIVADA',
+          xMotivo: 'Contingência desativada automaticamente',
+          detalhes: 'SEFAZ voltou a ficar disponível',
+          ambiente: 'homologacao',
+        });
+        
+        if (autoConfig.notifyOnDeactivation) {
+          toast.success('Contingência desativada automaticamente');
+        }
+      }
+    }, autoConfig.checkIntervalSeconds * 1000);
 
     return () => clearInterval(interval);
-  }, [autoCheck]);
+  }, [autoCheck, autoConfig.checkIntervalSeconds, autoConfig.notifyOnActivation, autoConfig.notifyOnDeactivation]);
 
   const handleCheckHealth = async () => {
     setIsChecking(true);
@@ -232,12 +266,25 @@ export function ContingenciaNFe() {
   const ModeIcon = modeConfig[state.mode].icon;
 
   return (
-    <motion.div
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-      className="space-y-6"
-    >
+    <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+      <TabsList className="grid w-full grid-cols-2 max-w-md">
+        <TabsTrigger value="status" className="gap-2">
+          <Shield className="h-4 w-4" />
+          Status e Controle
+        </TabsTrigger>
+        <TabsTrigger value="config" className="gap-2">
+          <Settings2 className="h-4 w-4" />
+          Regras Automáticas
+        </TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="status">
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="space-y-6"
+        >
       {/* Status Header */}
       <motion.div variants={itemVariants}>
         <Card className={isContingencyActive ? 'border-amber-500/50 bg-amber-500/5' : ''}>
@@ -631,6 +678,12 @@ export function ContingenciaNFe() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </motion.div>
+        </motion.div>
+      </TabsContent>
+
+      <TabsContent value="config">
+        <AutoContingenciaConfig />
+      </TabsContent>
+    </Tabs>
   );
 }
