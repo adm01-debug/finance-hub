@@ -53,7 +53,8 @@ import { registrarEvento } from '@/lib/sefaz-event-logger';
 import { EventosHistorico } from '@/components/nfe/EventosHistorico';
 import { CancelamentoNFe } from '@/components/nfe/CancelamentoNFe';
 import { AlertasRejeicao } from '@/components/nfe/AlertasRejeicao';
-import { History, Ban, Bell } from 'lucide-react';
+import { SefazAnalytics } from '@/components/nfe/SefazAnalytics';
+import { History, Ban, Bell, BarChart3 } from 'lucide-react';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -1053,6 +1054,10 @@ export default function NotasFiscais() {
                 <FileText className="h-4 w-4" />
                 Notas Fiscais
               </TabsTrigger>
+              <TabsTrigger value="analytics" className="gap-2">
+                <BarChart3 className="h-4 w-4" />
+                Analytics
+              </TabsTrigger>
               <TabsTrigger value="historico" className="gap-2">
                 <History className="h-4 w-4" />
                 Histórico SEFAZ
@@ -1283,6 +1288,10 @@ export default function NotasFiscais() {
               </CardContent>
             </Card>
           </div>
+            </TabsContent>
+
+            <TabsContent value="analytics">
+              <SefazAnalytics />
             </TabsContent>
 
             <TabsContent value="historico">
