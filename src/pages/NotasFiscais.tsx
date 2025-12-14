@@ -55,7 +55,8 @@ import { CancelamentoNFe } from '@/components/nfe/CancelamentoNFe';
 import { AlertasRejeicao } from '@/components/nfe/AlertasRejeicao';
 import { SefazAnalytics } from '@/components/nfe/SefazAnalytics';
 import { InutilizacaoNFe } from '@/components/nfe/InutilizacaoNFe';
-import { History, Ban, Bell, BarChart3 } from 'lucide-react';
+import { ContingenciaNFe } from '@/components/nfe/ContingenciaNFe';
+import { History, Ban, Bell, BarChart3, Shield } from 'lucide-react';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -1067,6 +1068,10 @@ export default function NotasFiscais() {
                 <History className="h-4 w-4" />
                 Histórico SEFAZ
               </TabsTrigger>
+              <TabsTrigger value="contingencia" className="gap-2">
+                <Shield className="h-4 w-4" />
+                Contingência
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="notas" className="space-y-4">
@@ -1312,6 +1317,10 @@ export default function NotasFiscais() {
                   <AlertasRejeicao />
                 </div>
               </div>
+            </TabsContent>
+
+            <TabsContent value="contingencia">
+              <ContingenciaNFe />
             </TabsContent>
           </Tabs>
         </motion.div>
