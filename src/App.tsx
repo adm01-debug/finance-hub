@@ -12,6 +12,7 @@ import FluxoCaixa from "./pages/FluxoCaixa";
 import Cobrancas from "./pages/Cobrancas";
 import Conciliacao from "./pages/Conciliacao";
 import Alertas from "./pages/Alertas";
+import ContasBancarias from "./pages/ContasBancarias";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +31,7 @@ const App = () => (
           <Route path="/cobrancas" element={<Cobrancas />} />
           <Route path="/conciliacao" element={<Conciliacao />} />
           <Route path="/alertas" element={<Alertas />} />
+          <Route path="/contas-bancarias" element={<ContasBancarias />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
