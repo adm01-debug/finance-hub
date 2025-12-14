@@ -31,7 +31,7 @@ import {
   Clock,
   RefreshCw,
   Send,
-  FileX,
+  FileX as FileXIcon,
   Package,
   User,
   Hash,
@@ -54,6 +54,7 @@ import { EventosHistorico } from '@/components/nfe/EventosHistorico';
 import { CancelamentoNFe } from '@/components/nfe/CancelamentoNFe';
 import { AlertasRejeicao } from '@/components/nfe/AlertasRejeicao';
 import { SefazAnalytics } from '@/components/nfe/SefazAnalytics';
+import { InutilizacaoNFe } from '@/components/nfe/InutilizacaoNFe';
 import { History, Ban, Bell, BarChart3 } from 'lucide-react';
 
 const containerVariants = {
@@ -221,7 +222,7 @@ const statusConfig = {
   pendente: { label: 'Pendente', color: 'bg-amber-500/10 text-amber-500 border-amber-500/20', icon: Clock },
   cancelada: { label: 'Cancelada', color: 'bg-red-500/10 text-red-500 border-red-500/20', icon: XCircle },
   denegada: { label: 'Denegada', color: 'bg-red-500/10 text-red-500 border-red-500/20', icon: AlertCircle },
-  inutilizada: { label: 'Inutilizada', color: 'bg-muted text-muted-foreground border-muted', icon: FileX }
+  inutilizada: { label: 'Inutilizada', color: 'bg-muted text-muted-foreground border-muted', icon: FileXIcon }
 };
 
 // NF-e Preview Component
@@ -1058,6 +1059,10 @@ export default function NotasFiscais() {
                 <BarChart3 className="h-4 w-4" />
                 Analytics
               </TabsTrigger>
+              <TabsTrigger value="inutilizacao" className="gap-2">
+                <FileXIcon className="h-4 w-4" />
+                Inutilização
+              </TabsTrigger>
               <TabsTrigger value="historico" className="gap-2">
                 <History className="h-4 w-4" />
                 Histórico SEFAZ
@@ -1292,6 +1297,10 @@ export default function NotasFiscais() {
 
             <TabsContent value="analytics">
               <SefazAnalytics />
+            </TabsContent>
+
+            <TabsContent value="inutilizacao">
+              <InutilizacaoNFe />
             </TabsContent>
 
             <TabsContent value="historico">

@@ -8,6 +8,14 @@ export interface SefazRequest {
   protocolo?: string;
   justificativa?: string;
   nfeData?: NFEData;
+  inutilizacao?: {
+    cnpj: string;
+    serie: string;
+    numeroInicial: number;
+    numeroFinal: number;
+    justificativa: string;
+    ano: string;
+  };
 }
 
 export interface NFEData {
