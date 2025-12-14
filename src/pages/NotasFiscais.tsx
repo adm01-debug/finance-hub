@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
+import { Progress } from '@/components/ui/progress';
 import { 
   FileText, 
   Download, 
@@ -36,11 +37,18 @@ import {
   Hash,
   DollarSign,
   TrendingUp,
-  AlertTriangle
+  AlertTriangle,
+  Loader2,
+  Wifi,
+  WifiOff,
+  Server,
+  ShieldCheck,
+  Zap
 } from 'lucide-react';
 import { formatCurrency, formatDate, formatDateTime } from '@/lib/formatters';
 import { mockCNPJs } from '@/data/mockData';
 import { toast } from 'sonner';
+import { processarSefaz, NFEData, SefazResponse, SEFAZ_STATUS } from '@/lib/sefaz-simulator';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -415,8 +423,114 @@ const NFePreview = ({ nfe }: { nfe: NotaFiscal }) => {
   );
 };
 
+// Componente de Status SEFAZ em tempo real
+const SefazStatusPanel = ({ 
+  isProcessing, 
+  currentStep, 
+  response 
+}: { 
+  isProcessing: boolean; 
+  currentStep: string; 
+  response: SefazResponse | null;
+}) => {
+  const steps = [
+    { id: 'validating', label: 'Validando dados', icon: ShieldCheck },
+    { id: 'connecting', label: 'Conectando à SEFAZ', icon: Wifi },
+    { id: 'sending', label: 'Enviando NF-e', icon: Send },
+    { id: 'processing', label: 'Processando resposta', icon: Server },
+    { id: 'done', label: 'Finalizado', icon: CheckCircle2 },
+  ];
+
+  const currentIndex = steps.findIndex(s => s.id === currentStep);
+  const progress = ((currentIndex + 1) / steps.length) * 100;
+
+  if (!isProcessing && !response) return null;
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, height: 0 }}
+      animate={{ opacity: 1, height: 'auto' }}
+      exit={{ opacity: 0, height: 0 }}
+      className="bg-muted/50 rounded-lg p-4 space-y-4"
+    >
+      <div className="flex items-center gap-2">
+        {isProcessing ? (
+          <Loader2 className="h-5 w-5 text-primary animate-spin" />
+        ) : response?.success ? (
+          <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+        ) : (
+          <XCircle className="h-5 w-5 text-red-500" />
+        )}
+        <span className="font-medium">
+          {isProcessing ? 'Comunicando com SEFAZ...' : 
+           response?.success ? 'NF-e Autorizada!' : 'Erro na Autorização'}
+        </span>
+      </div>
+
+      {isProcessing && (
+        <>
+          <Progress value={progress} className="h-2" />
+          <div className="grid grid-cols-5 gap-2">
+            {steps.map((step, idx) => {
+              const StepIcon = step.icon;
+              const isActive = idx === currentIndex;
+              const isDone = idx < currentIndex;
+              return (
+                <div 
+                  key={step.id}
+                  className={`text-center transition-colors ${
+                    isActive ? 'text-primary' : isDone ? 'text-emerald-500' : 'text-muted-foreground'
+                  }`}
+                >
+                  <StepIcon className={`h-4 w-4 mx-auto mb-1 ${isActive ? 'animate-pulse' : ''}`} />
+                  <span className="text-xs">{step.label}</span>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
+
+      {response && (
+        <div className={`rounded-lg p-3 ${response.success ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-red-500/10 border border-red-500/20'}`}>
+          <div className="flex items-center gap-2 mb-2">
+            <Badge variant="outline" className={response.success ? 'bg-emerald-500/20 text-emerald-500' : 'bg-red-500/20 text-red-500'}>
+              cStat: {response.cStat}
+            </Badge>
+            <span className="text-sm font-medium">{response.xMotivo}</span>
+          </div>
+          {response.chaveAcesso && (
+            <div className="space-y-1 text-sm">
+              <div className="flex items-center gap-2">
+                <span className="text-muted-foreground">Chave:</span>
+                <code className="font-mono text-xs bg-background px-2 py-1 rounded">{response.chaveAcesso}</code>
+              </div>
+              {response.protocolo && (
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground">Protocolo:</span>
+                  <code className="font-mono text-xs">{response.protocolo}</code>
+                </div>
+              )}
+            </div>
+          )}
+          {response.errors && response.errors.length > 0 && (
+            <div className="mt-2 space-y-1">
+              {response.errors.map((err, idx) => (
+                <p key={idx} className="text-sm text-red-500 flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" />
+                  {err}
+                </p>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </motion.div>
+  );
+};
+
 // Form para nova NF-e
-const NovaNFeForm = ({ onClose }: { onClose: () => void }) => {
+const NovaNFeForm = ({ onClose, onSuccess }: { onClose: () => void; onSuccess: (nota: NotaFiscal) => void }) => {
   const [formData, setFormData] = useState({
     destinatarioNome: '',
     destinatarioCnpj: '',
@@ -429,6 +543,10 @@ const NovaNFeForm = ({ onClose }: { onClose: () => void }) => {
   const [itens, setItens] = useState<ItemNFe[]>([
     { codigo: '', descricao: '', ncm: '', cfop: '5102', unidade: 'UN', quantidade: 1, valorUnitario: 0, valorTotal: 0 }
   ]);
+
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [currentStep, setCurrentStep] = useState('');
+  const [sefazResponse, setSefazResponse] = useState<SefazResponse | null>(null);
 
   const addItem = () => {
     setItens([...itens, { codigo: '', descricao: '', ncm: '', cfop: '5102', unidade: 'UN', quantidade: 1, valorUnitario: 0, valorTotal: 0 }]);
@@ -451,14 +569,105 @@ const NovaNFeForm = ({ onClose }: { onClose: () => void }) => {
 
   const totalProdutos = itens.reduce((acc, item) => acc + item.valorTotal, 0);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success('NF-e emitida com sucesso! Aguardando autorização da SEFAZ.');
-    onClose();
+    setIsProcessing(true);
+    setSefazResponse(null);
+
+    const empresa = mockCNPJs.find(c => c.id === formData.empresa);
+    
+    // Simula os passos de processamento
+    const steps = ['validating', 'connecting', 'sending', 'processing', 'done'];
+    
+    for (const step of steps.slice(0, -1)) {
+      setCurrentStep(step);
+      await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 500));
+    }
+
+    // Prepara dados para o simulador SEFAZ
+    const nfeData: NFEData = {
+      numero: Math.floor(1000 + Math.random() * 9000),
+      serie: 1,
+      naturezaOperacao: formData.naturezaOperacao,
+      dataEmissao: new Date(),
+      emitente: {
+        cnpj: empresa?.cnpj || '12.345.678/0001-90',
+        razaoSocial: empresa?.razaoSocial || 'Promo Brindes Ltda',
+        inscricaoEstadual: '123.456.789.123',
+        uf: 'SP'
+      },
+      destinatario: {
+        cpfCnpj: formData.destinatarioCnpj,
+        nome: formData.destinatarioNome,
+        endereco: formData.destinatarioEndereco
+      },
+      itens: itens.map(item => ({
+        codigo: item.codigo || 'PROD001',
+        descricao: item.descricao,
+        ncm: item.ncm || '96082000',
+        cfop: item.cfop,
+        quantidade: item.quantidade,
+        valorUnitario: item.valorUnitario,
+        valorTotal: item.valorTotal
+      })),
+      valorTotal: totalProdutos
+    };
+
+    // Processa com o simulador
+    const response = await processarSefaz({
+      tipo: 'autorizacao',
+      nfeData
+    });
+
+    setCurrentStep('done');
+    setSefazResponse(response);
+    setIsProcessing(false);
+
+    if (response.success) {
+      toast.success(`NF-e autorizada! Protocolo: ${response.protocolo}`);
+      
+      // Cria a nota fiscal para adicionar à lista
+      const novaNota: NotaFiscal = {
+        id: Date.now().toString(),
+        numero: String(nfeData.numero).padStart(9, '0'),
+        serie: '1',
+        chaveAcesso: response.chaveAcesso!,
+        naturezaOperacao: formData.naturezaOperacao,
+        dataEmissao: new Date().toISOString(),
+        cnpjEmitente: nfeData.emitente.cnpj,
+        emitenteNome: nfeData.emitente.razaoSocial,
+        cnpjDestinatario: formData.destinatarioCnpj,
+        destinatarioNome: formData.destinatarioNome,
+        destinatarioEndereco: formData.destinatarioEndereco,
+        valorProdutos: totalProdutos,
+        valorFrete: 0,
+        valorSeguro: 0,
+        valorDesconto: 0,
+        valorIPI: 0,
+        valorICMS: totalProdutos * 0.18,
+        valorTotal: totalProdutos,
+        status: 'autorizada',
+        protocolo: response.protocolo,
+        itens: itens
+      };
+
+      setTimeout(() => onSuccess(novaNota), 1500);
+    } else {
+      toast.error(`Rejeição SEFAZ: ${response.xMotivo}`);
+    }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-h-[70vh] overflow-y-auto p-1">
+      {/* SEFAZ Status Panel */}
+      <AnimatePresence>
+        <SefazStatusPanel 
+          isProcessing={isProcessing} 
+          currentStep={currentStep} 
+          response={sefazResponse} 
+        />
+      </AnimatePresence>
+
       {/* Destinatário */}
       <div className="space-y-4">
         <h4 className="font-medium flex items-center gap-2">
@@ -623,12 +832,35 @@ const NovaNFeForm = ({ onClose }: { onClose: () => void }) => {
 
       {/* Ações */}
       <div className="flex gap-2 pt-4 sticky bottom-0 bg-background">
-        <Button type="submit" className="flex-1 gap-2">
-          <Send className="h-4 w-4" />
-          Emitir NF-e
+        <Button 
+          type="submit" 
+          className="flex-1 gap-2"
+          disabled={isProcessing || sefazResponse?.success}
+        >
+          {isProcessing ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Processando...
+            </>
+          ) : sefazResponse?.success ? (
+            <>
+              <CheckCircle2 className="h-4 w-4" />
+              Autorizada!
+            </>
+          ) : (
+            <>
+              <Zap className="h-4 w-4" />
+              Transmitir para SEFAZ
+            </>
+          )}
         </Button>
-        <Button type="button" variant="outline" onClick={onClose}>
-          Cancelar
+        <Button 
+          type="button" 
+          variant="outline" 
+          onClick={onClose}
+          disabled={isProcessing}
+        >
+          {sefazResponse?.success ? 'Fechar' : 'Cancelar'}
         </Button>
       </div>
     </form>
@@ -639,7 +871,39 @@ export default function NotasFiscais() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('todos');
   const [showNovaNFe, setShowNovaNFe] = useState(false);
-  const [notas] = useState<NotaFiscal[]>(mockNotasFiscais);
+  const [notas, setNotas] = useState<NotaFiscal[]>(mockNotasFiscais);
+  const [isConsultando, setIsConsultando] = useState(false);
+
+  const handleNovaNota = useCallback((novaNota: NotaFiscal) => {
+    setNotas(prev => [novaNota, ...prev]);
+    setShowNovaNFe(false);
+  }, []);
+
+  const handleConsultarSefaz = useCallback(async () => {
+    setIsConsultando(true);
+    toast.info('Consultando status na SEFAZ...');
+    
+    // Simula consulta de notas pendentes
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    setNotas(prev => prev.map(nota => {
+      if (nota.status === 'pendente') {
+        // 80% de chance de autorizar
+        if (Math.random() > 0.2) {
+          toast.success(`NF-e #${nota.numero} autorizada!`);
+          return {
+            ...nota,
+            status: 'autorizada' as const,
+            protocolo: `135${new Date().getFullYear()}${String(Math.floor(Math.random() * 9999999999)).padStart(10, '0')}`
+          };
+        }
+      }
+      return nota;
+    }));
+    
+    setIsConsultando(false);
+    toast.success('Consulta SEFAZ finalizada!');
+  }, []);
 
   // Calculate KPIs
   const totalEmitido = notas.filter(n => n.status === 'autorizada').reduce((acc, n) => acc + n.valorTotal, 0);
@@ -692,7 +956,7 @@ export default function NotasFiscais() {
                   Emitir Nova NF-e
                 </DialogTitle>
               </DialogHeader>
-              <NovaNFeForm onClose={() => setShowNovaNFe(false)} />
+              <NovaNFeForm onClose={() => setShowNovaNFe(false)} onSuccess={handleNovaNota} />
             </DialogContent>
           </Dialog>
         </motion.div>
@@ -753,9 +1017,23 @@ export default function NotasFiscais() {
                     <SelectItem value="inutilizada">Inutilizada</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button variant="outline" className="gap-2">
-                  <RefreshCw className="h-4 w-4" />
-                  Consultar SEFAZ
+                <Button 
+                  variant="outline" 
+                  className="gap-2"
+                  onClick={handleConsultarSefaz}
+                  disabled={isConsultando}
+                >
+                  {isConsultando ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Consultando...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="h-4 w-4" />
+                      Consultar SEFAZ
+                    </>
+                  )}
                 </Button>
               </div>
             </CardContent>
