@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Bell,
   Search,
@@ -10,6 +9,7 @@ import {
   LogOut,
   User,
   Settings,
+  Monitor,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,20 +25,34 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { mockCNPJs, mockAlertas } from '@/data/mockData';
 import { cn } from '@/lib/utils';
+import { useTheme } from 'next-themes';
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 interface HeaderProps {
   sidebarCollapsed?: boolean;
 }
 
 export const Header = ({ sidebarCollapsed }: HeaderProps) => {
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const { theme, setTheme, resolvedTheme } = useTheme();
   const [selectedCNPJ, setSelectedCNPJ] = useState(mockCNPJs[0]);
   const unreadAlerts = mockAlertas.filter((a) => !a.lido).length;
 
-  const toggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode);
-    document.documentElement.classList.toggle('dark');
+  const isDark = resolvedTheme === 'dark';
+
+  const cycleTheme = () => {
+    if (theme === 'light') setTheme('dark');
+    else if (theme === 'dark') setTheme('system');
+    else setTheme('light');
   };
+
+  const getThemeIcon = () => {
+    if (theme === 'system') return Monitor;
+    if (isDark) return Moon;
+    return Sun;
+  };
+
+  const ThemeIcon = getThemeIcon();
 
   return (
     <header
@@ -76,7 +90,7 @@ export const Header = ({ sidebarCollapsed }: HeaderProps) => {
                 <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-64">
+            <DropdownMenuContent align="end" className="w-64 bg-popover">
               <DropdownMenuLabel>Selecionar Empresa</DropdownMenuLabel>
               <DropdownMenuSeparator />
               {mockCNPJs.map((cnpj) => (
@@ -97,25 +111,56 @@ export const Header = ({ sidebarCollapsed }: HeaderProps) => {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Dark Mode Toggle */}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleDarkMode}
-            className="h-10 w-10"
-          >
-            <motion.div
-              initial={false}
-              animate={{ rotate: isDarkMode ? 180 : 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              {isDarkMode ? (
-                <Moon className="h-5 w-5" />
-              ) : (
-                <Sun className="h-5 w-5" />
-              )}
-            </motion.div>
-          </Button>
+          {/* Theme Toggle */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10"
+              >
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={theme}
+                    initial={{ scale: 0, rotate: -180 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    exit={{ scale: 0, rotate: 180 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <ThemeIcon className="h-5 w-5" />
+                  </motion.div>
+                </AnimatePresence>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="bg-popover">
+              <DropdownMenuLabel>Tema</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem 
+                onClick={() => setTheme('light')}
+                className={cn("cursor-pointer gap-2", theme === 'light' && "bg-primary/10")}
+              >
+                <Sun className="h-4 w-4" />
+                Claro
+                {theme === 'light' && <Badge variant="secondary" className="ml-auto">Ativo</Badge>}
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => setTheme('dark')}
+                className={cn("cursor-pointer gap-2", theme === 'dark' && "bg-primary/10")}
+              >
+                <Moon className="h-4 w-4" />
+                Escuro
+                {theme === 'dark' && <Badge variant="secondary" className="ml-auto">Ativo</Badge>}
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => setTheme('system')}
+                className={cn("cursor-pointer gap-2", theme === 'system' && "bg-primary/10")}
+              >
+                <Monitor className="h-4 w-4" />
+                Sistema
+                {theme === 'system' && <Badge variant="secondary" className="ml-auto">Ativo</Badge>}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           {/* Notifications */}
           <DropdownMenu>
@@ -129,7 +174,7 @@ export const Header = ({ sidebarCollapsed }: HeaderProps) => {
                 )}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-80">
+            <DropdownMenuContent align="end" className="w-80 bg-popover">
               <DropdownMenuLabel className="flex items-center justify-between">
                 <span>Notificações</span>
                 <Badge variant="secondary">{unreadAlerts} novas</Badge>
@@ -148,8 +193,8 @@ export const Header = ({ sidebarCollapsed }: HeaderProps) => {
                       className={cn(
                         'h-2 w-2 rounded-full',
                         alerta.prioridade === 'critica' && 'bg-destructive',
-                        alerta.prioridade === 'alta' && 'bg-warning',
-                        alerta.prioridade === 'media' && 'bg-secondary',
+                        alerta.prioridade === 'alta' && 'bg-orange-500',
+                        alerta.prioridade === 'media' && 'bg-yellow-500',
                         alerta.prioridade === 'baixa' && 'bg-muted-foreground'
                       )}
                     />
@@ -163,8 +208,8 @@ export const Header = ({ sidebarCollapsed }: HeaderProps) => {
                 </DropdownMenuItem>
               ))}
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-center text-primary font-medium cursor-pointer justify-center">
-                Ver todas as notificações
+              <DropdownMenuItem asChild className="text-center text-primary font-medium cursor-pointer justify-center">
+                <Link to="/alertas">Ver todas as notificações</Link>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -188,16 +233,18 @@ export const Header = ({ sidebarCollapsed }: HeaderProps) => {
                 <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuContent align="end" className="w-48 bg-popover">
               <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="cursor-pointer">
                 <User className="h-4 w-4 mr-2" />
                 Perfil
               </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer">
-                <Settings className="h-4 w-4 mr-2" />
-                Configurações
+              <DropdownMenuItem asChild className="cursor-pointer">
+                <Link to="/configuracoes">
+                  <Settings className="h-4 w-4 mr-2" />
+                  Configurações
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="cursor-pointer text-destructive focus:text-destructive">
