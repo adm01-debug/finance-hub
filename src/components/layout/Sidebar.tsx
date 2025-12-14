@@ -40,6 +40,7 @@ const navItems: NavItem[] = [
   { label: 'Conciliação', icon: RefreshCcw, href: '/conciliacao', badge: 12 },
   { label: 'Fluxo de Caixa', icon: BarChart3, href: '/fluxo-caixa' },
   { label: 'Centro de Custos', icon: PieChart, href: '/centro-custos' },
+  { label: 'Relatórios', icon: FileText, href: '/relatorios' },
   { label: 'Contas Bancárias', icon: Landmark, href: '/contas-bancarias' },
   { label: 'Empresas (CNPJs)', icon: Building2, href: '/empresas' },
   { label: 'Bitrix24', icon: Zap, href: '/bitrix24' },
