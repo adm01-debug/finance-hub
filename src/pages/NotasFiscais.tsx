@@ -49,6 +49,9 @@ import { formatCurrency, formatDate, formatDateTime } from '@/lib/formatters';
 import { mockCNPJs } from '@/data/mockData';
 import { toast } from 'sonner';
 import { processarSefaz, NFEData, SefazResponse, SEFAZ_STATUS } from '@/lib/sefaz-simulator';
+import { registrarEvento } from '@/lib/sefaz-event-logger';
+import { EventosHistorico } from '@/components/nfe/EventosHistorico';
+import { History } from 'lucide-react';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -613,10 +616,50 @@ const NovaNFeForm = ({ onClose, onSuccess }: { onClose: () => void; onSuccess: (
       valorTotal: totalProdutos
     };
 
+    // Registra evento de validação
+    const tempoInicio = Date.now();
+    registrarEvento({
+      tipo: 'VALIDACAO',
+      numeroNfe: String(nfeData.numero).padStart(9, '0'),
+      cStat: '000',
+      xMotivo: 'Validação de schema XML concluída',
+      ambiente: 'homologacao',
+      tempoResposta: Date.now() - tempoInicio,
+      detalhes: 'Estrutura XML validada conforme schema NF-e 4.00'
+    });
+
+    // Registra evento de envio
+    registrarEvento({
+      tipo: 'ENVIO_LOTE',
+      numeroNfe: String(nfeData.numero).padStart(9, '0'),
+      cStat: '103',
+      xMotivo: 'Lote recebido com sucesso',
+      ambiente: 'homologacao',
+      tempoResposta: 1200,
+      detalhes: 'Lote enviado para processamento na SEFAZ'
+    });
+
     // Processa com o simulador
     const response = await processarSefaz({
       tipo: 'autorizacao',
       nfeData
+    });
+
+    const tempoTotal = Date.now() - tempoInicio;
+
+    // Registra evento de retorno
+    registrarEvento({
+      tipo: response.success ? 'AUTORIZACAO' : 'REJEICAO',
+      numeroNfe: String(nfeData.numero).padStart(9, '0'),
+      chaveAcesso: response.chaveAcesso,
+      cStat: response.cStat,
+      xMotivo: response.xMotivo,
+      protocolo: response.protocolo,
+      ambiente: 'homologacao',
+      tempoResposta: tempoTotal,
+      detalhes: response.success 
+        ? 'NF-e autorizada com sucesso pela SEFAZ' 
+        : `Rejeição: ${response.errors?.join(', ') || response.xMotivo}`
     });
 
     setCurrentStep('done');
@@ -990,62 +1033,74 @@ export default function NotasFiscais() {
           })}
         </motion.div>
 
-        {/* Filters */}
+        {/* Tabs para Notas e Histórico */}
         <motion.div variants={itemVariants}>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Buscar por número, destinatário ou chave de acesso..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-full md:w-48">
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="todos">Todos os Status</SelectItem>
-                    <SelectItem value="autorizada">Autorizada</SelectItem>
-                    <SelectItem value="pendente">Pendente</SelectItem>
-                    <SelectItem value="cancelada">Cancelada</SelectItem>
-                    <SelectItem value="denegada">Denegada</SelectItem>
-                    <SelectItem value="inutilizada">Inutilizada</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Button 
-                  variant="outline" 
-                  className="gap-2"
-                  onClick={handleConsultarSefaz}
-                  disabled={isConsultando}
-                >
-                  {isConsultando ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Consultando...
-                    </>
-                  ) : (
-                    <>
-                      <RefreshCw className="h-4 w-4" />
-                      Consultar SEFAZ
-                    </>
-                  )}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+          <Tabs defaultValue="notas" className="space-y-4">
+            <TabsList>
+              <TabsTrigger value="notas" className="gap-2">
+                <FileText className="h-4 w-4" />
+                Notas Fiscais
+              </TabsTrigger>
+              <TabsTrigger value="historico" className="gap-2">
+                <History className="h-4 w-4" />
+                Histórico SEFAZ
+              </TabsTrigger>
+            </TabsList>
 
-        {/* Notas List */}
-        <motion.div variants={itemVariants}>
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5" />
+            <TabsContent value="notas" className="space-y-4">
+              {/* Filters */}
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex flex-col md:flex-row gap-4">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Buscar por número, destinatário ou chave de acesso..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                      <SelectTrigger className="w-full md:w-48">
+                        <SelectValue placeholder="Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="todos">Todos os Status</SelectItem>
+                        <SelectItem value="autorizada">Autorizada</SelectItem>
+                        <SelectItem value="pendente">Pendente</SelectItem>
+                        <SelectItem value="cancelada">Cancelada</SelectItem>
+                        <SelectItem value="denegada">Denegada</SelectItem>
+                        <SelectItem value="inutilizada">Inutilizada</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button 
+                      variant="outline" 
+                      className="gap-2"
+                      onClick={handleConsultarSefaz}
+                      disabled={isConsultando}
+                    >
+                      {isConsultando ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Consultando...
+                        </>
+                      ) : (
+                        <>
+                          <RefreshCw className="h-4 w-4" />
+                          Consultar SEFAZ
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Notas List */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5" />
                 Notas Fiscais Emitidas
               </CardTitle>
               <CardDescription>
@@ -1156,55 +1211,61 @@ export default function NotasFiscais() {
               </div>
             </CardContent>
           </Card>
-        </motion.div>
 
-        {/* Quick Stats */}
-        <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 rounded-full bg-emerald-500/10">
-                  <TrendingUp className="h-6 w-6 text-emerald-500" />
+          {/* Quick Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 rounded-full bg-emerald-500/10">
+                    <TrendingUp className="h-6 w-6 text-emerald-500" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Taxa de Autorização</p>
+                    <p className="text-2xl font-bold">
+                      {((notas.filter(n => n.status === 'autorizada').length / notas.length) * 100).toFixed(1)}%
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Taxa de Autorização</p>
-                  <p className="text-2xl font-bold">
-                    {((notas.filter(n => n.status === 'autorizada').length / notas.length) * 100).toFixed(1)}%
-                  </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 rounded-full bg-blue-500/10">
+                    <DollarSign className="h-6 w-6 text-blue-500" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Ticket Médio</p>
+                    <p className="text-2xl font-bold">
+                      {formatCurrency(totalEmitido / (notasAutorizadas || 1))}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 rounded-full bg-blue-500/10">
-                  <DollarSign className="h-6 w-6 text-blue-500" />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 rounded-full bg-primary/10">
+                    <Hash className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Itens Faturados</p>
+                    <p className="text-2xl font-bold">
+                      {notas.filter(n => n.status === 'autorizada').reduce((acc, n) => acc + n.itens.reduce((a, i) => a + i.quantidade, 0), 0)}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Ticket Médio</p>
-                  <p className="text-2xl font-bold">
-                    {formatCurrency(totalEmitido / (notasAutorizadas || 1))}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 rounded-full bg-primary/10">
-                  <Hash className="h-6 w-6 text-primary" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Itens Faturados</p>
-                  <p className="text-2xl font-bold">
-                    {notas.filter(n => n.status === 'autorizada').reduce((acc, n) => acc + n.itens.reduce((a, i) => a + i.quantidade, 0), 0)}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
+            </TabsContent>
+
+            <TabsContent value="historico">
+              <EventosHistorico />
+            </TabsContent>
+          </Tabs>
         </motion.div>
       </motion.div>
     </MainLayout>
