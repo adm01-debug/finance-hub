@@ -37,6 +37,7 @@ const navItems: NavItem[] = [
   { label: 'Contas a Receber', icon: ArrowDownCircle, href: '/contas-receber', badge: 3 },
   { label: 'Contas a Pagar', icon: ArrowUpCircle, href: '/contas-pagar', badge: 2 },
   { label: 'Cobrança', icon: Receipt, href: '/cobrancas' },
+  { label: 'Boletos', icon: FileText, href: '/boletos' },
   { label: 'Conciliação', icon: RefreshCcw, href: '/conciliacao', badge: 12 },
   { label: 'Fluxo de Caixa', icon: BarChart3, href: '/fluxo-caixa' },
   { label: 'Centro de Custos', icon: PieChart, href: '/centro-custos' },
