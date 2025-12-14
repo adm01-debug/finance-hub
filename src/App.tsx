@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ThemeProvider } from "next-themes";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import ContasReceber from "./pages/ContasReceber";
@@ -20,30 +21,32 @@ import Bitrix24 from "./pages/Bitrix24";
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/contas-receber" element={<ContasReceber />} />
-          <Route path="/contas-pagar" element={<ContasPagar />} />
-          <Route path="/centro-custos" element={<CentroCustos />} />
-          <Route path="/fluxo-caixa" element={<FluxoCaixa />} />
-          <Route path="/cobrancas" element={<Cobrancas />} />
-          <Route path="/conciliacao" element={<Conciliacao />} />
-          <Route path="/alertas" element={<Alertas />} />
-          <Route path="/contas-bancarias" element={<ContasBancarias />} />
-          <Route path="/empresas" element={<Empresas />} />
-          <Route path="/configuracoes" element={<Configuracoes />} />
-          <Route path="/bitrix24" element={<Bitrix24 />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange={false}>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/contas-receber" element={<ContasReceber />} />
+            <Route path="/contas-pagar" element={<ContasPagar />} />
+            <Route path="/centro-custos" element={<CentroCustos />} />
+            <Route path="/fluxo-caixa" element={<FluxoCaixa />} />
+            <Route path="/cobrancas" element={<Cobrancas />} />
+            <Route path="/conciliacao" element={<Conciliacao />} />
+            <Route path="/alertas" element={<Alertas />} />
+            <Route path="/contas-bancarias" element={<ContasBancarias />} />
+            <Route path="/empresas" element={<Empresas />} />
+            <Route path="/configuracoes" element={<Configuracoes />} />
+            <Route path="/bitrix24" element={<Bitrix24 />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </ThemeProvider>
 );
 
 export default App;
