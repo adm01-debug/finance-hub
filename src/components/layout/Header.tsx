@@ -27,12 +27,13 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/components/theme/ThemeProvider';
 import { useState, useMemo } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { useEmpresas } from '@/hooks/useFinancialData';
 import { useAlertas } from '@/hooks/useAlertas';
 import { KeyboardShortcutsDialog } from './KeyboardShortcutsDialog';
+import { PageBreadcrumb } from './PageBreadcrumb';
 
 interface HeaderProps {
   sidebarCollapsed?: boolean;
@@ -49,9 +50,11 @@ export const Header = ({ sidebarCollapsed }: HeaderProps) => {
   const { theme, setTheme, isDark } = useTheme();
   const { user, profile, role, signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const { data: empresas = [] } = useEmpresas();
   const { data: alertas = [] } = useAlertas();
   const [selectedEmpresaId, setSelectedEmpresaId] = useState<string | null>(null);
+  const showBreadcrumb = location.pathname !== '/';
   
   const selectedEmpresa = useMemo(() => {
     if (selectedEmpresaId) return empresas.find(e => e.id === selectedEmpresaId);
@@ -93,12 +96,13 @@ export const Header = ({ sidebarCollapsed }: HeaderProps) => {
   return (
     <header
       className={cn(
-        'fixed top-0 right-0 z-30 h-16 bg-card/80 backdrop-blur-xl border-b border-border transition-all duration-300',
-        sidebarCollapsed ? 'left-[72px]' : 'left-[260px]'
+        'fixed top-0 right-0 z-30 bg-card/80 backdrop-blur-xl border-b border-border transition-all duration-300',
+        sidebarCollapsed ? 'left-[72px]' : 'left-[280px]'
       )}
       style={{ boxShadow: 'var(--header-shadow)' }}
     >
-      <div className="h-full flex items-center justify-between px-6">
+      {/* Main Header Row */}
+      <div className="h-16 flex items-center justify-between px-6">
         {/* Left: Search */}
         <div className="flex items-center gap-4 flex-1 max-w-xl" data-tour="search">
           <div className="relative flex-1">
@@ -317,6 +321,13 @@ export const Header = ({ sidebarCollapsed }: HeaderProps) => {
           </DropdownMenu>
         </div>
       </div>
+
+      {/* Breadcrumb Row */}
+      {showBreadcrumb && (
+        <div className="h-10 flex items-center px-6 border-t border-border/50 bg-muted/30">
+          <PageBreadcrumb />
+        </div>
+      )}
     </header>
   );
 };
