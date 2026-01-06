@@ -1,12 +1,43 @@
-// Utilitários para exportação de dados em PDF e Excel (CSV)
+// Utilitários para exportação de dados em PDF, Excel, CSV e JSON
 
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { formatCurrency, formatDate } from './formatters';
+
+// =============================================================================
+// TYPES
+// =============================================================================
 
 export interface ExportColumn<T> {
   key: keyof T | string;
   header: string;
   formatter?: (value: any, row: T) => string;
+  width?: number;
+  align?: 'left' | 'center' | 'right';
 }
+
+export interface ExportOptions {
+  filename?: string;
+  sheetName?: string;
+  title?: string;
+  subtitle?: string;
+  includeTimestamp?: boolean;
+}
+
+export type ExportFormat = 'csv' | 'excel' | 'pdf' | 'json';
+
+export interface ExportFormatConfig {
+  id: ExportFormat;
+  label: string;
+  extension: string;
+}
+
+export const exportFormats: ExportFormatConfig[] = [
+  { id: 'csv', label: 'CSV', extension: '.csv' },
+  { id: 'excel', label: 'Excel', extension: '.xls' },
+  { id: 'pdf', label: 'PDF', extension: '.pdf' },
+  { id: 'json', label: 'JSON', extension: '.json' },
+];
 
 // Exportar para CSV (Excel compatível)
 export function exportToCSV<T extends Record<string, any>>(
@@ -162,3 +193,176 @@ export const fornecedoresColumns: ExportColumn<any>[] = [
   { key: 'cidade', header: 'Cidade' },
   { key: 'estado', header: 'UF' },
 ];
+
+// =============================================================================
+// EXCEL EXPORT (XLS format using HTML table)
+// =============================================================================
+
+export function exportToExcel<T extends Record<string, any>>(
+  data: T[],
+  columns: ExportColumn<T>[],
+  options: ExportOptions = {}
+): void {
+  const {
+    filename = 'export',
+    sheetName = 'Dados',
+    title,
+    subtitle,
+    includeTimestamp = true
+  } = options;
+
+  // Build HTML table (Excel can open HTML tables)
+  let html = `
+    <html xmlns:o="urn:schemas-microsoft-com:office:office"
+          xmlns:x="urn:schemas-microsoft-com:office:excel"
+          xmlns="http://www.w3.org/TR/REC-html40">
+    <head>
+      <meta charset="UTF-8">
+      <!--[if gte mso 9]>
+      <xml>
+        <x:ExcelWorkbook>
+          <x:ExcelWorksheets>
+            <x:ExcelWorksheet>
+              <x:Name>${sheetName}</x:Name>
+              <x:WorksheetOptions>
+                <x:DisplayGridlines/>
+              </x:WorksheetOptions>
+            </x:ExcelWorksheet>
+          </x:ExcelWorksheets>
+        </x:ExcelWorkbook>
+      </xml>
+      <![endif]-->
+      <style>
+        table { border-collapse: collapse; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #4F46E5; color: white; font-weight: bold; }
+        tr:nth-child(even) { background-color: #f9fafb; }
+        .title { font-size: 18px; font-weight: bold; margin-bottom: 8px; }
+        .subtitle { font-size: 14px; color: #666; margin-bottom: 16px; }
+        .number { text-align: right; }
+        .center { text-align: center; }
+      </style>
+    </head>
+    <body>
+  `;
+
+  if (title) {
+    html += `<div class="title">${title}</div>`;
+  }
+  if (subtitle) {
+    html += `<div class="subtitle">${subtitle}</div>`;
+  }
+
+  html += '<table>';
+
+  // Headers
+  html += '<tr>';
+  columns.forEach((col) => {
+    const width = col.width ? `width="${col.width}"` : '';
+    html += `<th ${width}>${col.header}</th>`;
+  });
+  html += '</tr>';
+
+  // Data rows
+  data.forEach((row) => {
+    html += '<tr>';
+    columns.forEach((col) => {
+      const keys = col.key.toString().split('.');
+      let value: any = row;
+      for (const k of keys) {
+        value = value?.[k];
+      }
+      const formatted = col.formatter ? col.formatter(value, row) : (value ?? '');
+      const alignClass = col.align === 'right' ? 'number' : col.align === 'center' ? 'center' : '';
+      html += `<td class="${alignClass}">${formatted}</td>`;
+    });
+    html += '</tr>';
+  });
+
+  html += '</table></body></html>';
+
+  const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+  const timestamp = includeTimestamp ? `_${format(new Date(), 'yyyy-MM-dd_HH-mm')}` : '';
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `${filename}${timestamp}.xls`;
+  link.click();
+  URL.revokeObjectURL(link.href);
+}
+
+// =============================================================================
+// JSON EXPORT
+// =============================================================================
+
+export function exportToJSON<T extends Record<string, any>>(
+  data: T[],
+  options: ExportOptions = {}
+): void {
+  const { filename = 'export', includeTimestamp = true } = options;
+
+  const jsonContent = JSON.stringify(data, null, 2);
+  const blob = new Blob([jsonContent], { type: 'application/json;charset=utf-8;' });
+
+  const timestamp = includeTimestamp ? `_${format(new Date(), 'yyyy-MM-dd_HH-mm')}` : '';
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `${filename}${timestamp}.json`;
+  link.click();
+  URL.revokeObjectURL(link.href);
+}
+
+// =============================================================================
+// UNIFIED EXPORT FUNCTION
+// =============================================================================
+
+export function exportData<T extends Record<string, any>>(
+  formatId: ExportFormat,
+  data: T[],
+  columns: ExportColumn<T>[],
+  options: ExportOptions = {}
+): void {
+  switch (formatId) {
+    case 'csv':
+      exportToCSV(data, columns, options.filename || 'export');
+      break;
+    case 'excel':
+      exportToExcel(data, columns, options);
+      break;
+    case 'pdf':
+      exportToPDF(data, columns, options.title || options.filename || 'Relatório');
+      break;
+    case 'json':
+      exportToJSON(data, options);
+      break;
+  }
+}
+
+// =============================================================================
+// COPY TO CLIPBOARD
+// =============================================================================
+
+export async function copyTableToClipboard<T extends Record<string, any>>(
+  data: T[],
+  columns: ExportColumn<T>[]
+): Promise<boolean> {
+  try {
+    const headers = columns.map((col) => col.header).join('\t');
+    const rows = data.map((row) => {
+      return columns.map((col) => {
+        const keys = col.key.toString().split('.');
+        let value: any = row;
+        for (const k of keys) {
+          value = value?.[k];
+        }
+        return col.formatter ? col.formatter(value, row) : (value ?? '');
+      }).join('\t');
+    });
+
+    const text = [headers, ...rows].join('\n');
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch (error) {
+    console.error('Failed to copy to clipboard:', error);
+    return false;
+  }
+}
