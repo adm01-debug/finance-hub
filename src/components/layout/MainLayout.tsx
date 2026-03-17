@@ -23,7 +23,7 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Sidebar />
+      <Sidebar collapsed={sidebarCollapsed} onCollapsedChange={setSidebarCollapsed} />
       <Header sidebarCollapsed={sidebarCollapsed} />
       <CommandPalette />
 

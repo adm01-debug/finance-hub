@@ -112,6 +112,8 @@ const BoletoPreview = ({ boleto, onUpdateStatus }: {
         descricao: boleto.descricao,
       });
       toast.success('PDF do boleto gerado com sucesso!');
+    }).catch(() => {
+      toast.error('Erro ao gerar PDF do boleto');
     });
   };
 

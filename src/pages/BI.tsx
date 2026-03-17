@@ -107,12 +107,24 @@ export default function BI() {
     const totalVencidasReceber = vencidasReceber.reduce((acc, c) => acc + c.valor, 0);
     const inadimplencia = totalReceber > 0 ? (totalVencidasReceber / totalReceber) * 100 : 0;
 
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
     const receitaMes = filteredReceber
-      .filter(c => c.status === 'pago' && c.data_recebimento && new Date(c.data_recebimento).getMonth() === new Date().getMonth())
+      .filter(c => {
+        if (c.status !== 'pago' || !c.data_recebimento) return false;
+        const d = new Date(c.data_recebimento);
+        return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+      })
       .reduce((acc, c) => acc + (c.valor_recebido || c.valor), 0);
 
     const despesaMes = filteredPagar
-      .filter(c => c.status === 'pago' && c.data_pagamento && new Date(c.data_pagamento).getMonth() === new Date().getMonth())
+      .filter(c => {
+        if (c.status !== 'pago' || !c.data_pagamento) return false;
+        const d = new Date(c.data_pagamento);
+        return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+      })
       .reduce((acc, c) => acc + (c.valor_pago || c.valor), 0);
 
     const lucroMes = receitaMes - despesaMes;
@@ -121,7 +133,11 @@ export default function BI() {
     // Compare with previous month
     const lastMonth = subMonths(new Date(), 1);
     const receitaMesAnterior = filteredReceber
-      .filter(c => c.status === 'pago' && c.data_recebimento && new Date(c.data_recebimento).getMonth() === lastMonth.getMonth())
+      .filter(c => {
+        if (c.status !== 'pago' || !c.data_recebimento) return false;
+        const d = new Date(c.data_recebimento);
+        return d.getMonth() === lastMonth.getMonth() && d.getFullYear() === lastMonth.getFullYear();
+      })
       .reduce((acc, c) => acc + (c.valor_recebido || c.valor), 0);
 
     const variacaoReceita = receitaMesAnterior > 0 ? ((receitaMes - receitaMesAnterior) / receitaMesAnterior) * 100 : 0;

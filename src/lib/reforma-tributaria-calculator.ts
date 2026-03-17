@@ -252,9 +252,9 @@ export function calcularTributosReforma(
     detalhamento.push(`Alíquota IBS após redução: ${aliquotaIBS.toFixed(2)}%`);
   }
   
-  // Cálculo CBS e IBS
-  const valorCBS = valorBase * (aliquotaCBS / 100);
-  const valorIBS = valorBase * (aliquotaIBS / 100);
+  // Cálculo CBS e IBS (arredondamento para 2 casas decimais)
+  const valorCBS = Math.round(valorBase * (aliquotaCBS / 100) * 100) / 100;
+  const valorIBS = Math.round(valorBase * (aliquotaIBS / 100) * 100) / 100;
   
   // Distribuição IBS (aproximada: 75% estados, 25% municípios)
   const aliquotaIBSEstadual = aliquotaIBS * 0.75;
@@ -262,7 +262,7 @@ export function calcularTributosReforma(
   
   // Imposto Seletivo
   const aliquotaIS = obterAliquotaIS(dados.categoriaIS, dados.aliquotaISCustomizada);
-  const valorIS = valorBase * (aliquotaIS / 100);
+  const valorIS = Math.round(valorBase * (aliquotaIS / 100) * 100) / 100;
   
   if (aliquotaIS > 0) {
     const isConfig = CONFIGURACOES_IS.find(c => c.categoria === dados.categoriaIS);

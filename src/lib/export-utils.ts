@@ -198,7 +198,7 @@ export const fornecedoresColumns: ExportColumn<any>[] = [
 // EXCEL EXPORT (XLS format using HTML table)
 // =============================================================================
 
-export function exportToExcel<T extends Record<string, any>>(
+export function exportToExcelHtml<T extends Record<string, any>>(
   data: T[],
   columns: ExportColumn<T>[],
   options: ExportOptions = {}
@@ -326,7 +326,7 @@ export function exportData<T extends Record<string, any>>(
       exportToCSV(data, columns, options.filename || 'export');
       break;
     case 'excel':
-      exportToExcel(data, columns, options);
+      exportToExcelHtml(data, columns, options);
       break;
     case 'pdf':
       exportToPDF(data, columns, options.title || options.filename || 'Relatório');

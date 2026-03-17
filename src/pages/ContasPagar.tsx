@@ -456,7 +456,7 @@ export default function ContasPagar() {
         .update({ 
           status: 'pago', 
           data_pagamento: new Date().toISOString().split('T')[0],
-          valor_pago: sortedContas.find(c => c.id === id)?.valor || 0
+          valor_pago: (() => { const c = sortedContas.find(c => c.id === id); return c?.valor_pago || c?.valor || 0; })()
         })
         .eq('id', id);
       if (error) throw error;

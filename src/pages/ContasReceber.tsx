@@ -268,7 +268,7 @@ export default function ContasReceber() {
         .update({ 
           status: 'pago', 
           data_recebimento: new Date().toISOString().split('T')[0],
-          valor_recebido: conta?.valor || 0
+          valor_recebido: conta?.valor_recebido || conta?.valor || 0
         })
         .eq('id', id);
       if (error) throw error;

@@ -193,6 +193,8 @@ export default function FluxoCaixa() {
                   import('@/lib/pdf-generator').then(({ generateFluxoCaixaPDF }) => {
                     generateFluxoCaixaPDF(dadosCenarioAtivo, `Fluxo de Caixa - Cenário ${cenarioAtivo}`);
                     toast.success('PDF gerado com sucesso!');
+                  }).catch(() => {
+                    toast.error('Erro ao gerar PDF');
                   });
                 }}>
                   <FileText className="h-4 w-4 mr-2 text-red-500" />
@@ -202,6 +204,8 @@ export default function FluxoCaixa() {
                   import('@/lib/pdf-generator').then(({ generateFluxoCaixaCSV }) => {
                     generateFluxoCaixaCSV(dadosCenarioAtivo);
                     toast.success('Excel exportado com sucesso!');
+                  }).catch(() => {
+                    toast.error('Erro ao exportar Excel');
                   });
                 }}>
                   <FileSpreadsheet className="h-4 w-4 mr-2 text-green-600" />

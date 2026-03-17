@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth, type AppRole } from '@/hooks/useAuth';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -16,8 +16,6 @@ import { TableShimmerSkeleton } from '@/components/ui/loading-skeleton';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { GerenciadorPermissoes } from '@/components/admin/GerenciadorPermissoes';
-
-type AppRole = 'admin' | 'financeiro' | 'operacional' | 'visualizador';
 
 interface UserWithRole {
   id: string;

@@ -17,9 +17,13 @@ export function InstallPWA() {
   const handleInstall = () => {
     if (installPrompt) {
       installPrompt.prompt();
-      installPrompt.userChoice.then(() => {
-        setInstallPrompt(null);
-      });
+      installPrompt.userChoice
+        .then(() => {
+          setInstallPrompt(null);
+        })
+        .catch(() => {
+          setInstallPrompt(null);
+        });
     }
   };
   

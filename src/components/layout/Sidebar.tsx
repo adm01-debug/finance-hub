@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -147,8 +147,18 @@ const bottomNavItems: NavItem[] = [
   { label: 'Configurações', icon: Settings, href: '/configuracoes' },
 ];
 
-export const Sidebar = () => {
-  const [collapsed, setCollapsed] = useState(false);
+interface SidebarProps {
+  collapsed?: boolean;
+  onCollapsedChange?: (collapsed: boolean) => void;
+}
+
+export const Sidebar = ({ collapsed: controlledCollapsed, onCollapsedChange }: SidebarProps = {}) => {
+  const [internalCollapsed, setInternalCollapsed] = useState(false);
+  const collapsed = controlledCollapsed ?? internalCollapsed;
+  const setCollapsed = (value: boolean) => {
+    setInternalCollapsed(value);
+    onCollapsedChange?.(value);
+  };
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = {};
     navGroups.forEach(group => {
@@ -160,11 +170,14 @@ export const Sidebar = () => {
   const { count: aprovacoesPendentes } = useAprovacoesPendentesCount();
 
   // Auto-expand group containing active route
-  useMemo(() => {
+  useEffect(() => {
     navGroups.forEach(group => {
       const hasActiveItem = group.items.some(item => item.href === location.pathname);
-      if (hasActiveItem && !expandedGroups[group.id]) {
-        setExpandedGroups(prev => ({ ...prev, [group.id]: true }));
+      if (hasActiveItem) {
+        setExpandedGroups(prev => {
+          if (prev[group.id]) return prev;
+          return { ...prev, [group.id]: true };
+        });
       }
     });
   }, [location.pathname]);
@@ -377,6 +390,7 @@ export const Sidebar = () => {
       {/* Collapse Button */}
       <button
         onClick={() => setCollapsed(!collapsed)}
+        type="button"
         className="absolute -right-3 top-20 h-6 w-6 rounded-full bg-card border border-border flex items-center justify-center shadow-md hover:bg-muted transition-colors"
         aria-label={collapsed ? 'Expandir menu' : 'Recolher menu'}
       >
