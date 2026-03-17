@@ -134,8 +134,8 @@ export function GestaoContratos() {
                   </p>
                 </div>
                 <div className="text-right mr-4">
-                  {c.valor_mensal && <p className="font-semibold">{formatCurrency(c.valor_mensal)}/mês</p>}
-                  {c.valor_total && <p className="text-sm text-muted-foreground">Total: {formatCurrency(c.valor_total)}</p>}
+                  {!!c.valor_mensal && <p className="font-semibold">{formatCurrency(c.valor_mensal)}/mês</p>}
+                  {!!c.valor_total && <p className="text-sm text-muted-foreground">Total: {formatCurrency(c.valor_total)}</p>}
                 </div>
                 <div className="flex gap-1">
                   {c.status === 'ativo' && (

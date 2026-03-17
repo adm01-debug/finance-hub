@@ -40,10 +40,12 @@ export function ProactiveSuggestions({ onSuggestionClick }: ProactiveSuggestions
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    analyzePatternsAndGenerateSuggestions();
+    let cancelled = false;
+    analyzePatternsAndGenerateSuggestions(cancelled);
+    return () => { cancelled = true; };
   }, []);
 
-  const analyzePatternsAndGenerateSuggestions = async () => {
+  const analyzePatternsAndGenerateSuggestions = async (cancelled = false) => {
     setIsLoading(true);
     const newSuggestions: ProactiveSuggestion[] = [];
 
@@ -199,8 +201,10 @@ export function ProactiveSuggestions({ onSuggestionClick }: ProactiveSuggestions
       logger.error('Error generating suggestions:', error);
     }
 
-    setSuggestions(newSuggestions);
-    setIsLoading(false);
+    if (!cancelled) {
+      setSuggestions(newSuggestions);
+      setIsLoading(false);
+    }
   };
 
   const handleDismiss = (id: string) => {
