@@ -105,8 +105,8 @@ export function useContasPagarLogic() {
   const totalVencido = allContas.filter(c => c.status === 'vencido').reduce((sum, c) => sum + c.valor - (c.valor_pago || 0), 0);
   const totalPagoMes = allContas.filter(c => c.status === 'pago').reduce((sum, c) => sum + (c.valor_pago || 0), 0);
   const venceHoje = allContas.filter(c => {
-    const hoje = new Date().toDateString();
-    return new Date(c.data_vencimento).toDateString() === hoje && c.status === 'pendente';
+    if (!c.data_vencimento || c.status !== 'pendente') return false;
+    return new Date(c.data_vencimento).toDateString() === new Date().toDateString();
   }).length;
 
   const requerAprovacao = (valor: number) => {
@@ -124,6 +124,7 @@ export function useContasPagarLogic() {
   const countPendentesAprovacao = contasPendentesAprovacao.length;
 
   const aprovacoesUrgentes = contasPendentesAprovacao.filter(c => {
+    if (!c.data_vencimento) return false;
     const dataVenc = new Date(c.data_vencimento);
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0);
@@ -179,6 +180,7 @@ export function useContasPagarLogic() {
     const pendente = (temSolicitacaoPendente || (naoAprovado && !aprovacaoStatusMap.has(conta.id))) && conta.status !== 'pago' && conta.status !== 'cancelado';
 
     if (!pendente) return 999;
+    if (!conta.data_vencimento) return 998;
 
     const dataVenc = new Date(conta.data_vencimento);
     const hoje = new Date();
@@ -193,19 +195,19 @@ export function useContasPagarLogic() {
         const prioA = calcularPrioridadeAprovacao(a);
         const prioB = calcularPrioridadeAprovacao(b);
         if (prioA !== prioB) return prioA - prioB;
-        return new Date(a.data_vencimento).getTime() - new Date(b.data_vencimento).getTime();
+        return (new Date(a.data_vencimento || 0).getTime()) - (new Date(b.data_vencimento || 0).getTime());
       case 'vencimento':
-        return new Date(a.data_vencimento).getTime() - new Date(b.data_vencimento).getTime();
+        return (new Date(a.data_vencimento || 0).getTime()) - (new Date(b.data_vencimento || 0).getTime());
       case 'vencimento_desc':
-        return new Date(b.data_vencimento).getTime() - new Date(a.data_vencimento).getTime();
+        return (new Date(b.data_vencimento || 0).getTime()) - (new Date(a.data_vencimento || 0).getTime());
       case 'valor':
         return b.valor - a.valor;
       case 'valor_asc':
         return a.valor - b.valor;
       case 'fornecedor':
-        return a.fornecedor_nome.localeCompare(b.fornecedor_nome);
+        return (a.fornecedor_nome || '').localeCompare(b.fornecedor_nome || '');
       default:
-        return new Date(a.data_vencimento).getTime() - new Date(b.data_vencimento).getTime();
+        return (new Date(a.data_vencimento || 0).getTime()) - (new Date(b.data_vencimento || 0).getTime());
     }
   });
 

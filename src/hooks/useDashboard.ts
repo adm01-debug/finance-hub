@@ -145,6 +145,7 @@ export function useDashboard(options: UseDashboardOptions = {}) {
       ];
 
       return transactions
+        .filter(t => t.date)
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
         .slice(0, 10);
     },

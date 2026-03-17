@@ -113,7 +113,7 @@ export function useFluxoCaixaProjetado(dias: number = 30) {
       // Agregar receitas
       (receber || []).forEach(conta => {
         const data = conta.data_vencimento;
-        if (fluxoPorData[data]) {
+        if (data && fluxoPorData[data]) {
           fluxoPorData[data].receitas += conta.valor - (conta.valor_recebido || 0);
         }
       });
@@ -121,7 +121,7 @@ export function useFluxoCaixaProjetado(dias: number = 30) {
       // Agregar despesas
       (pagar || []).forEach(conta => {
         const data = conta.data_vencimento;
-        if (fluxoPorData[data]) {
+        if (data && fluxoPorData[data]) {
           fluxoPorData[data].despesas += conta.valor - (conta.valor_pago || 0);
         }
       });

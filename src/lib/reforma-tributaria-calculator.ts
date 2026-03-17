@@ -305,7 +305,7 @@ export function calcularTributosReforma(
   
   // Carga tributária total
   const totalTributos = totalTributosNovos + totalTributosAntigos;
-  const cargaTributariaPercentual = (totalTributos / valorBase) * 100;
+  const cargaTributariaPercentual = valorBase > 0 ? (totalTributos / valorBase) * 100 : 0;
   
   // Split Payment (aplicável a partir de 2026 para CBS, 2027 para IBS completo)
   // O split payment retém automaticamente os tributos no momento do pagamento

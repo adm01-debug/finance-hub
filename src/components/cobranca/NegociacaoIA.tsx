@@ -104,7 +104,7 @@ Pergunta do usuário: ${mensagemUsuario}
       }
 
       // Proposta 2: Parcelamento
-      const numParcelas = Math.min(12, Math.ceil(valorTotal / 500));
+      const numParcelas = Math.max(1, Math.min(12, Math.ceil(valorTotal / 500)));
       propostas.push({
         tipo: 'parcelamento',
         descricao: `Parcelamento em ${numParcelas}x sem juros`,

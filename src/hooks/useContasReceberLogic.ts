@@ -134,10 +134,12 @@ export function useContasReceberLogic() {
       let matchesAdvanced = true;
       
       if (advancedFilters.dataVencimentoInicio) {
+        if (!c.data_vencimento) return false;
         const vencimento = new Date(c.data_vencimento);
         matchesAdvanced = matchesAdvanced && vencimento >= advancedFilters.dataVencimentoInicio;
       }
       if (advancedFilters.dataVencimentoFim) {
+        if (!c.data_vencimento) return false;
         const vencimento = new Date(c.data_vencimento);
         matchesAdvanced = matchesAdvanced && vencimento <= advancedFilters.dataVencimentoFim;
       }

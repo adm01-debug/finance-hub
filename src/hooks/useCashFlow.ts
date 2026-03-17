@@ -130,7 +130,7 @@ export function calculateDailyCashFlow(
     const dayStr = format(day, 'yyyy-MM-dd');
     
     const dayTransactions = transactions.filter(
-      (t) => t.vencimento.startsWith(dayStr)
+      (t) => t.vencimento?.startsWith(dayStr)
     );
 
     const receitas = dayTransactions

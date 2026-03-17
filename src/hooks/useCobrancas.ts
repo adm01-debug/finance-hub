@@ -89,7 +89,7 @@ export function useContasVencidas() {
         data_vencimento: conta.data_vencimento,
         etapa_cobranca: conta.etapa_cobranca,
         status: conta.status,
-        dias_atraso: differenceInDays(new Date(), parseISO(conta.data_vencimento)),
+        dias_atraso: conta.data_vencimento ? differenceInDays(new Date(), parseISO(conta.data_vencimento)) : 0,
         score: conta.clientes?.score || null,
       }));
     },
@@ -170,6 +170,7 @@ export function useAgingData() {
 
       return faixas.map(faixa => {
         const contasFaixa = (data || []).filter(conta => {
+          if (!conta.data_vencimento) return false;
           const dias = differenceInDays(new Date(), parseISO(conta.data_vencimento));
           return dias >= faixa.min && dias <= faixa.max;
         });
@@ -229,7 +230,7 @@ export function useTopDevedores(limit: number = 10) {
         }
         acc[key].valor_total += conta.valor - (conta.valor_recebido || 0);
         acc[key].qtd_titulos += 1;
-        const diasAtraso = differenceInDays(new Date(), parseISO(conta.data_vencimento));
+        const diasAtraso = conta.data_vencimento ? differenceInDays(new Date(), parseISO(conta.data_vencimento)) : 0;
         if (diasAtraso > acc[key].dias_atraso) {
           acc[key].dias_atraso = diasAtraso;
         }
