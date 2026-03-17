@@ -53,7 +53,7 @@ export function registrarEvento(evento: Omit<EventoSefaz, 'id' | 'timestamp'>): 
     eventosLog.pop();
   }
   
-  console.log('[SEFAZ Event Logger]', novoEvento);
+  console.debug('[SEFAZ Event Logger]', novoEvento);
   return novoEvento;
 }
 

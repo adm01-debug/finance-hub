@@ -90,6 +90,7 @@ export function useCRUD<T extends BaseEntity>(config: CRUDConfig<T>) {
       if (error) throw error;
     },
     onSuccess: () => { queryClient.invalidateQueries({ queryKey }); toast.success('Registro arquivado!'); },
+    onError: () => toast.error('Erro ao arquivar registro'),
   });
 
   const bulkDelete = async (ids: string[]) => {

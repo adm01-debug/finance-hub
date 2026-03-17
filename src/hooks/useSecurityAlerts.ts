@@ -42,7 +42,7 @@ async function sendSecurityPushAlert(alert: SecurityAlert) {
       }
     });
     
-    console.log('[useSecurityAlerts] Push notification sent for alert:', alert.id);
+    console.debug('[useSecurityAlerts] Push notification sent for alert:', alert.id);
   } catch (error) {
     console.error('[useSecurityAlerts] Error sending push notification:', error);
   }

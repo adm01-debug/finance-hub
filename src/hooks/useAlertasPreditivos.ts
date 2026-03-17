@@ -42,7 +42,7 @@ async function enviarPushNotification(alerta: AlertaPreditivo) {
       },
     });
 
-    console.log('[useAlertasPreditivos] Push notification enviada para alerta:', alerta.id);
+    console.debug('[useAlertasPreditivos] Push notification enviada para alerta:', alerta.id);
   } catch (error) {
     console.error('[useAlertasPreditivos] Erro ao enviar push notification:', error);
   }

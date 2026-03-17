@@ -26,7 +26,7 @@ async function sendDeviceAlertEmail(userId: string, email: string, deviceInfo: D
     if (error) {
       console.error('Error sending device alert email:', error);
     } else {
-      console.log('Device alert email sent successfully');
+      console.debug('Device alert email sent successfully');
     }
   } catch (error) {
     console.error('Error invoking send-device-alert function:', error);

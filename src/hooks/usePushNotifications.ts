@@ -72,7 +72,7 @@ export function usePushNotifications() {
         scope: '/'
       });
       
-      console.log('Service Worker registrado:', registration);
+      console.debug('Service Worker registrado:', registration);
       return registration;
     } catch (error) {
       console.error('Erro ao registrar Service Worker:', error);

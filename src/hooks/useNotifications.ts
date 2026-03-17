@@ -75,6 +75,10 @@ export function useNotifications() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
     },
+    onError: (error) => {
+      console.error('Erro ao marcar notificação como lida:', error);
+      toast.error('Erro ao marcar notificação como lida');
+    },
   });
 
   // Marcar todas como lidas
@@ -109,6 +113,10 @@ export function useNotifications() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    },
+    onError: (error) => {
+      console.error('Erro ao deletar notificação:', error);
+      toast.error('Erro ao deletar notificação');
     },
   });
 

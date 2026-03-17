@@ -104,7 +104,7 @@ export function useSessions() {
         const data = await response.json();
         ipAddress = data.ip;
       } catch {
-        console.log('Could not fetch IP');
+        console.warn('Could not fetch IP');
       }
 
       const deviceInfo = parseUserAgent(navigator.userAgent);

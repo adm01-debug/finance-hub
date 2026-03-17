@@ -235,7 +235,7 @@ export function activateContingency(
   };
   
   saveContingencyState(state);
-  console.log('[Contingência] Modo ativado:', mode, 'Motivo:', reason);
+  console.debug('[Contingência] Modo ativado:', mode, 'Motivo:', reason);
   
   return state;
 }
@@ -254,7 +254,7 @@ export function deactivateContingency(): ContingencyState {
   };
   
   saveContingencyState(state);
-  console.log('[Contingência] Modo desativado');
+  console.debug('[Contingência] Modo desativado');
   
   return state;
 }
@@ -298,7 +298,7 @@ export function addPendingNFe(nfe: Omit<PendingNFe, 'status' | 'tentativas' | 'u
   });
   
   saveContingencyState(state);
-  console.log('[Contingência] NF-e pendente adicionada:', nfe.numero);
+  console.debug('[Contingência] NF-e pendente adicionada:', nfe.numero);
   
   return state;
 }
