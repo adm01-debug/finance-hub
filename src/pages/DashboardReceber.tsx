@@ -273,12 +273,13 @@ export default function DashboardReceber() {
       .forEach((c) => {
         const valor = c.valor - (c.valor_recebido || 0);
         const isVencido = c.data_vencimento < hoje;
+        const nomeCliente = c.cliente_nome || 'Sem nome';
 
-        if (!porCliente.has(c.cliente_nome)) {
-          porCliente.set(c.cliente_nome, { nome: c.cliente_nome, valor: 0, vencido: 0 });
+        if (!porCliente.has(nomeCliente)) {
+          porCliente.set(nomeCliente, { nome: nomeCliente, valor: 0, vencido: 0 });
         }
 
-        const cliente = porCliente.get(c.cliente_nome)!;
+        const cliente = porCliente.get(nomeCliente)!;
         cliente.valor += valor;
         if (isVencido) cliente.vencido += valor;
       });

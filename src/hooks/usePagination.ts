@@ -57,7 +57,7 @@ export function usePagination({
 
   // Cálculos derivados
   const totalPages = useMemo(
-    () => Math.max(1, Math.ceil(totalItems / pageSize)),
+    () => Math.max(1, Math.ceil(totalItems / Math.max(1, pageSize))),
     [totalItems, pageSize]
   );
 

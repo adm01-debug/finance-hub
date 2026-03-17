@@ -232,7 +232,7 @@ export const parseCurrencyInput = (value: string): number => {
   const lastComma = cleaned.lastIndexOf(',');
   const lastDot = cleaned.lastIndexOf('.');
   if (lastComma > lastDot) {
-    cleaned = cleaned.replace(/\./g, '').replace(',', '.');
+    cleaned = cleaned.replace(/\./g, '').replace(/,/g, '.');
   } else if (lastDot > lastComma) {
     cleaned = cleaned.replace(/,/g, '');
   }

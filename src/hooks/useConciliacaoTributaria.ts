@@ -187,7 +187,7 @@ export function useConciliacaoTributaria(empresaId?: string, competencia?: strin
           valorEsperado: totalCBSEsperado * 0.5,
           valorEncontrado: totalCreditosCBS,
           diferenca: totalCreditosCBS - (totalCBSEsperado * 0.5),
-          percentualDiferenca: 10,
+          percentualDiferenca: totalCBSEsperado > 0 ? Math.abs(((totalCreditosCBS - (totalCBSEsperado * 0.5)) / (totalCBSEsperado * 0.5)) * 100) : 0,
           status: 'divergente',
           gravidade: 'media',
           dataIdentificacao: new Date(),

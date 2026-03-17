@@ -293,7 +293,10 @@ export function useBitrix24() {
 
   // Check connection on mount
   useEffect(() => {
-    testConnection().catch(() => setIsConnected(false));
+    let isMounted = true;
+    testConnection()
+      .catch(() => { if (isMounted) setIsConnected(false); });
+    return () => { isMounted = false; };
   }, [testConnection]);
 
   // Stats calculation

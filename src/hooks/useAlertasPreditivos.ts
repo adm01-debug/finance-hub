@@ -196,7 +196,7 @@ export function useAlertasPreditivos() {
         // Enviar push notifications para alertas de alta prioridade
         const alertasAlta = novosAlertas.filter(a => a.prioridade === 'alta' || a.tipo === 'ruptura');
         for (const alerta of alertasAlta) {
-          enviarPushNotification(alerta);
+          enviarPushNotification(alerta).catch(() => {});
         }
       }
 
