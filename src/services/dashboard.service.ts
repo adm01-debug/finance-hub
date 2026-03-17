@@ -179,7 +179,7 @@ export const dashboardService = {
       daysUntilDue: Math.ceil(
         (new Date(bill.data_vencimento).getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
       ),
-      fornecedor: bill.fornecedor,
+      fornecedor: bill.fornecedor ? { id: bill.fornecedor.id, nome: bill.fornecedor.nome_fantasia || bill.fornecedor.razao_social } : undefined,
     }));
   },
 
@@ -204,7 +204,7 @@ export const dashboardService = {
       daysOverdue: Math.ceil(
         (todayDate.getTime() - new Date(bill.data_vencimento).getTime()) / (1000 * 60 * 60 * 24)
       ),
-      fornecedor: bill.fornecedor,
+      fornecedor: bill.fornecedor ? { id: bill.fornecedor.id, nome: bill.fornecedor.nome_fantasia || bill.fornecedor.razao_social } : undefined,
     }));
   },
 
@@ -225,7 +225,7 @@ export const dashboardService = {
       valor: bill.valor,
       vencimento: bill.data_vencimento,
       daysUntilDue: 0,
-      fornecedor: bill.fornecedor,
+      fornecedor: bill.fornecedor ? { id: bill.fornecedor.id, nome: bill.fornecedor.nome_fantasia || bill.fornecedor.razao_social } : undefined,
     }));
   },
 
@@ -248,7 +248,7 @@ export const dashboardService = {
       valor: bill.valor,
       vencimento: bill.data_vencimento,
       daysUntilDue: 1,
-      fornecedor: bill.fornecedor,
+      fornecedor: bill.fornecedor ? { id: bill.fornecedor.id, nome: bill.fornecedor.nome_fantasia || bill.fornecedor.razao_social } : undefined,
     }));
   },
 

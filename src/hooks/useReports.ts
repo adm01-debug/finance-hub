@@ -133,7 +133,7 @@ export function useReports(
     if (fornecedoresQuery.data) {
       reportService.exportToCSV(
         fornecedoresQuery.data.map(f => ({
-          fornecedor: f.fornecedor?.nome_fantasia || f.fornecedor?.razao_social || f.fornecedor?.nome || 'Sem nome',
+          fornecedor: f.fornecedor?.nome || 'Sem nome',
           totalPagar: f.totalPagar,
           totalPago: f.totalPago,
           contasAbertas: f.contasAbertas,
