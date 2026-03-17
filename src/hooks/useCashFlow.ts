@@ -172,6 +172,7 @@ export function calculateMonthlyCashFlow(
     const monthStr = format(month, 'yyyy-MM');
 
     const monthTransactions = transactions.filter((t) => {
+      if (!t.vencimento) return false;
       const date = parseISO(t.vencimento);
       return isWithinInterval(date, { start: monthStart, end: monthEnd });
     });

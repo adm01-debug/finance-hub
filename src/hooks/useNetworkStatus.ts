@@ -50,13 +50,15 @@ export function useNetworkStatus() {
 
   useEffect(() => {
     const handleOnline = () => {
-      setStatus(prev => ({ ...prev, isOnline: true }));
-      if (status.wasOffline) {
-        toast.success('Conexão restaurada', {
-          description: 'Você está online novamente.',
-          duration: 3000,
-        });
-      }
+      setStatus(prev => {
+        if (prev.wasOffline) {
+          toast.success('Conexão restaurada', {
+            description: 'Você está online novamente.',
+            duration: 3000,
+          });
+        }
+        return { ...prev, isOnline: true };
+      });
       updateNetworkInfo();
     };
 
