@@ -65,12 +65,14 @@ export const reportService = {
     let contasReceberQuery = supabase.from('contas_receber').select('*');
     if (startDate) contasReceberQuery = contasReceberQuery.gte('data_vencimento', startDate);
     if (endDate) contasReceberQuery = contasReceberQuery.lte('data_vencimento', endDate);
-    const { data: contasReceber } = await contasReceberQuery;
+    const { data: contasReceber, error: contasReceberError } = await contasReceberQuery;
+    if (contasReceberError) throw new Error(contasReceberError.message);
 
     let contasPagarQuery = supabase.from('contas_pagar').select('*');
     if (startDate) contasPagarQuery = contasPagarQuery.gte('data_vencimento', startDate);
     if (endDate) contasPagarQuery = contasPagarQuery.lte('data_vencimento', endDate);
-    const { data: contasPagar } = await contasPagarQuery;
+    const { data: contasPagar, error: contasPagarError } = await contasPagarQuery;
+    if (contasPagarError) throw new Error(contasPagarError.message);
 
     const today = new Date().toISOString().split('T')[0];
 
@@ -102,12 +104,14 @@ export const reportService = {
     let receberQuery = supabase.from('contas_receber').select('valor, data_recebimento').eq('status', 'pago').not('data_recebimento', 'is', null);
     if (startDate) receberQuery = receberQuery.gte('data_recebimento', startDate);
     if (endDate) receberQuery = receberQuery.lte('data_recebimento', endDate);
-    const { data: recebidas } = await receberQuery;
+    const { data: recebidas, error: recebidasError } = await receberQuery;
+    if (recebidasError) throw new Error(recebidasError.message);
 
     let pagarQuery = supabase.from('contas_pagar').select('valor, data_pagamento').eq('status', 'pago').not('data_pagamento', 'is', null);
     if (startDate) pagarQuery = pagarQuery.gte('data_pagamento', startDate);
     if (endDate) pagarQuery = pagarQuery.lte('data_pagamento', endDate);
-    const { data: pagas } = await pagarQuery;
+    const { data: pagas, error: pagasError } = await pagarQuery;
+    if (pagasError) throw new Error(pagasError.message);
 
     const cashFlowMap = new Map<string, { entradas: number; saidas: number }>();
 
@@ -141,7 +145,8 @@ export const reportService = {
     let query = supabase.from('contas_pagar').select('categoria, valor');
     if (startDate) query = query.gte('data_vencimento', startDate);
     if (endDate) query = query.lte('data_vencimento', endDate);
-    const { data } = await query;
+    const { data, error } = await query;
+    if (error) throw new Error(error.message);
 
     const categoriaMap = new Map<string, { total: number; quantidade: number }>();
     let grandTotal = 0;
@@ -168,7 +173,8 @@ export const reportService = {
     let query = supabase.from('contas_receber').select('categoria, valor');
     if (startDate) query = query.gte('data_vencimento', startDate);
     if (endDate) query = query.lte('data_vencimento', endDate);
-    const { data } = await query;
+    const { data, error } = await query;
+    if (error) throw new Error(error.message);
 
     const categoriaMap = new Map<string, { total: number; quantidade: number }>();
     let grandTotal = 0;

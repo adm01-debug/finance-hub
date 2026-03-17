@@ -275,14 +275,14 @@ export const dashboardService = {
     receitas.data?.forEach(r => {
       const date = r.data_recebimento;
       const current = cashFlowMap.get(date) || { entradas: 0, saidas: 0 };
-      current.entradas += r.valor;
+      current.entradas += r.valor || 0;
       cashFlowMap.set(date, current);
     });
 
     despesas.data?.forEach(d => {
       const date = d.data_pagamento;
       const current = cashFlowMap.get(date) || { entradas: 0, saidas: 0 };
-      current.saidas += d.valor;
+      current.saidas += d.valor || 0;
       cashFlowMap.set(date, current);
     });
 

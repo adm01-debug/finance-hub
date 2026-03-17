@@ -221,7 +221,7 @@ export const contasReceberService = {
         result[conta.status] = { count: 0, total: 0 };
       }
       result[conta.status].count++;
-      result[conta.status].total += conta.valor;
+      result[conta.status].total += conta.valor || 0;
     });
 
     return result;
