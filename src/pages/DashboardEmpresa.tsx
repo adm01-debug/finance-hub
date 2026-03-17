@@ -703,7 +703,7 @@ export default function DashboardEmpresa() {
                         {c.vencido > 0 ? formatCurrency(c.vencido) : '-'}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Progress value={(c.valor / totalReceber) * 100} className="h-2 w-16" />
+                        <Progress value={totalReceber > 0 ? (c.valor / totalReceber) * 100 : 0} className="h-2 w-16" />
                       </TableCell>
                     </TableRow>
                   ))
@@ -742,7 +742,7 @@ export default function DashboardEmpresa() {
                         {f.vencido > 0 ? formatCurrency(f.vencido) : '-'}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Progress value={(f.valor / totalPagar) * 100} className="h-2 w-16" />
+                        <Progress value={totalPagar > 0 ? (f.valor / totalPagar) * 100 : 0} className="h-2 w-16" />
                       </TableCell>
                     </TableRow>
                   ))
