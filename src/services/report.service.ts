@@ -310,5 +310,6 @@ export const reportService = {
     link.href = URL.createObjectURL(blob);
     link.download = `${filename}.csv`;
     link.click();
+    URL.revokeObjectURL(link.href);
   },
 };

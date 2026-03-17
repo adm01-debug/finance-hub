@@ -70,7 +70,8 @@ export function VisualizarRelatorioDialog({
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
+      URL.revokeObjectURL(url);
+
       toast({
         title: 'Exportado com sucesso',
         description: 'O arquivo CSV foi baixado.',
@@ -96,7 +97,8 @@ export function VisualizarRelatorioDialog({
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
+    URL.revokeObjectURL(url);
+
     toast({
       title: 'Exportado com sucesso',
       description: 'O arquivo JSON foi baixado.',
