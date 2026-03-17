@@ -43,8 +43,12 @@ export function ResumosCenarios({ metricas, saldoAtual, cenarioAtivo, onCenarioC
 
   // Encontrar melhor e pior cenário
   const saldosFinais = Object.entries(metricas).map(([c, m]) => ({ cenario: c as CenarioTipo, saldo: m.saldoFinal }));
-  const melhorCenario = saldosFinais.reduce((a, b) => a.saldo > b.saldo ? a : b).cenario;
-  const piorCenario = saldosFinais.reduce((a, b) => a.saldo < b.saldo ? a : b).cenario;
+  const melhorCenario = saldosFinais.length > 0
+    ? saldosFinais.reduce((a, b) => a.saldo > b.saldo ? a : b).cenario
+    : 'otimista' as CenarioTipo;
+  const piorCenario = saldosFinais.length > 0
+    ? saldosFinais.reduce((a, b) => a.saldo < b.saldo ? a : b).cenario
+    : 'pessimista' as CenarioTipo;
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">

@@ -115,6 +115,7 @@ export function ConfirmationDialog({
       onClose();
     } catch (error) {
       console.error('Confirmation action failed:', error);
+      // Don't close dialog on error — user sees it stayed open
     } finally {
       setLoading(false);
     }
