@@ -152,7 +152,8 @@ export function useDashboardMetrics(filters: DashboardFilters) {
 
   // Top 10 clientes por receita
   const topClientesReceita = useMemo(() => {
-    const clienteReceitas = new Map<string, { 
+    const clientesMap = new Map(clientes.map(c => [c.id, c]));
+    const clienteReceitas = new Map<string, {
       id: string;
       nome: string;
       nomeFantasia: string | null;
@@ -165,7 +166,7 @@ export function useDashboardMetrics(filters: DashboardFilters) {
     contasReceberFiltradas.forEach(conta => {
       const clienteId = conta.cliente_id || 'sem-cliente';
       const clienteNome = conta.cliente_nome || 'Cliente não identificado';
-      const clienteData = clientes.find(c => c.id === clienteId);
+      const clienteData = clientesMap.get(clienteId);
       
       if (!clienteReceitas.has(clienteId)) {
         clienteReceitas.set(clienteId, {

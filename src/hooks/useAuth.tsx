@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
+import { useState, useEffect, useCallback, useMemo, createContext, useContext, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/lib/logger';
@@ -67,11 +67,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const refreshProfile = async () => {
+  const refreshProfile = useCallback(async () => {
     if (user) {
       await fetchProfile(user.id);
     }
-  };
+  }, [user]);
 
   useEffect(() => {
     let initialSessionHandled = false;
@@ -119,20 +119,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signOut = async () => {
+  const signOut = useCallback(async () => {
     await supabase.auth.signOut();
     setUser(null);
     setSession(null);
     setProfile(null);
     setRole(null);
-  };
+  }, []);
 
-  const hasRole = (roles: AppRole[]) => {
+  const hasRole = useCallback((roles: AppRole[]) => {
     if (!role) return false;
     return roles.includes(role);
-  };
+  }, [role]);
 
-  const value: AuthContextType = {
+  const value: AuthContextType = useMemo(() => ({
     user,
     session,
     profile,
@@ -144,7 +144,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     hasRole,
     signOut,
     refreshProfile,
-  };
+  }), [user, session, profile, role, isLoading, hasRole, signOut, refreshProfile]);
 
   return (
     <AuthContext.Provider value={value}>
