@@ -250,7 +250,7 @@ export default function BI() {
       const vencimento = new Date(c.data_vencimento);
       const dias = differenceInDays(hoje, vencimento);
       
-      if (dias < 0) aging.aVencer += c.valor;
+      if (dias <= 0) aging.aVencer += c.valor;
       else if (dias <= 30) aging.ate30 += c.valor;
       else if (dias <= 60) aging.ate60 += c.valor;
       else if (dias <= 90) aging.ate90 += c.valor;

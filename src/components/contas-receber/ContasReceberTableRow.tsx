@@ -91,8 +91,8 @@ export function ContasReceberTableRow({
   const status = statusConfig[conta.status as StatusPagamento];
   const StatusIcon = status?.icon || Clock;
   const overdueDays = calculateOverdueDays(new Date(conta.data_vencimento));
-  const saldo = conta.valor - (conta.valor_recebido || 0);
-  const percentualRecebido = conta.valor_recebido ? (conta.valor_recebido / conta.valor) * 100 : 0;
+  const saldo = (conta.valor || 0) - (conta.valor_recebido || 0);
+  const percentualRecebido = conta.valor_recebido && conta.valor ? (conta.valor_recebido / conta.valor) * 100 : 0;
   const clienteData = conta.clientes;
 
   const RowComponent = animate ? motion.tr : 'tr';

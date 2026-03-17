@@ -48,6 +48,8 @@ export function formatCurrency(
     return formatCompactCurrency(value, currency, showSymbol);
   }
 
+  if (!isFinite(value)) return `${showSymbol ? info.symbol + ' ' : ''}0${',' + '0'.repeat(info.decimalPlaces)}`;
+
   const absoluteValue = Math.abs(value);
   const isNegative = value < 0;
 

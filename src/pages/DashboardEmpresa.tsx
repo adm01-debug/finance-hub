@@ -221,7 +221,7 @@ export default function DashboardEmpresa() {
 
   // Cash flow projection
   const fluxoCaixaProjetado = useMemo(() => {
-    const dias = parseInt(periodoAnalise);
+    const dias = parseInt(periodoAnalise, 10) || 30;
     const result = [];
     let saldoAcumulado = saldoTotal;
 
@@ -240,7 +240,8 @@ export default function DashboardEmpresa() {
 
       saldoAcumulado = saldoAcumulado + receitasDia - despesasDia;
 
-      if (i % Math.ceil(dias / 15) === 0 || i === dias - 1) {
+      const step = Math.ceil(dias / 15) || 1;
+      if (i % step === 0 || i === dias - 1) {
         result.push({
           data: data.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }),
           receitas: receitasDia,

@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
-import { addMonths, format } from 'date-fns';
+import { addMonths, format, parseISO } from 'date-fns';
 
 export interface AcordoParcelamento {
   id: string;
@@ -129,7 +129,7 @@ export function useAcordosParcelamento() {
 
       // Criar parcelas
       const parcelas = [];
-      let dataVencimento = new Date(data.data_primeiro_vencimento);
+      let dataVencimento = parseISO(data.data_primeiro_vencimento);
       
       for (let i = 1; i <= data.numero_parcelas; i++) {
         // Última parcela pode ter ajuste de centavos

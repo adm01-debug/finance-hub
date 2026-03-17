@@ -117,7 +117,7 @@ Component Stack: ${this.state.errorInfo?.componentStack || 'N/A'}
             </CardHeader>
             
             <CardContent className="space-y-4">
-              {process.env.NODE_ENV === 'development' && this.state.error && (
+              {import.meta.env.DEV && this.state.error && (
                 <div className="relative p-4 rounded-xl bg-muted/50 border border-border">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2 text-destructive font-semibold text-sm">

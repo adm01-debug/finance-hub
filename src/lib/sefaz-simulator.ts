@@ -146,7 +146,7 @@ function gerarProtocolo(uf: string): string {
 // Gera número de recibo
 function gerarRecibo(uf: string): string {
   const codigoUF = getCodigoUF(uf);
-  const sequencial = String(Math.floor(Math.random() * 999999999999999)).padStart(15, '0');
+  const sequencial = (String(Math.floor(Math.random() * 999999999)) + String(Math.floor(Math.random() * 999999))).padStart(15, '0');
   return `${codigoUF}${sequencial}`;
 }
 
