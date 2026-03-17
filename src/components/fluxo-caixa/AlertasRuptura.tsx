@@ -158,9 +158,9 @@ interface AlertaItemProps {
 }
 
 function AlertaItem({ alerta, index, onDismiss, onVerDetalhes }: AlertaItemProps) {
-  const config = alertaConfig[alerta.tipo];
+  const config = alertaConfig[alerta.tipo] || alertaConfig['risco_medio'];
   const Icon = config.icon;
-  const cenarioConfig = CENARIOS_CONFIG[alerta.cenario];
+  const cenarioConfig = CENARIOS_CONFIG[alerta.cenario] || { nome: alerta.cenario, cor: '#666' };
 
   return (
     <motion.div

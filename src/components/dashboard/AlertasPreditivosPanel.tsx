@@ -78,8 +78,8 @@ export function AlertasPreditivosPanel({
 
   const alertasOrdenados = useMemo(() => {
     return [...alertas].sort((a, b) => {
-      const prioridadeOrder = { alta: 0, media: 1, baixa: 2 };
-      return prioridadeOrder[a.prioridade] - prioridadeOrder[b.prioridade];
+      const prioridadeOrder: Record<string, number> = { alta: 0, media: 1, baixa: 2 };
+      return (prioridadeOrder[a.prioridade] ?? 99) - (prioridadeOrder[b.prioridade] ?? 99);
     });
   }, [alertas]);
 
