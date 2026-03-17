@@ -3,6 +3,7 @@
 // ============================================
 
 import { useState } from 'react';
+import { logger } from '@/lib/logger';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -88,7 +89,7 @@ export default function Asaas() {
       const result = await consultarSaldo.mutateAsync();
       setSaldo(result);
     } catch (error) {
-      console.error('Erro ao consultar saldo:', error);
+      logger.error('Erro ao consultar saldo:', error);
     } finally {
       setLoadingSaldo(false);
     }
@@ -96,13 +97,14 @@ export default function Asaas() {
 
   const handleCancelar = async () => {
     if (!cancelConfirm) return;
-    try { await cancelarCobranca.mutateAsync(cancelConfirm); } catch (error) { console.error('Erro ao cancelar cobrança:', error); }
+    try { await cancelarCobranca.mutateAsync(cancelConfirm); } catch (error) { logger.error('Erro ao cancelar cobrança:', error); }
     setCancelConfirm(null);
   };
 
   const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    toast.success('Copiado!');
+    navigator.clipboard.writeText(text)
+      .then(() => toast.success('Copiado!'))
+      .catch(() => toast.error('Erro ao copiar'));
   };
 
   const formatDate = (dateStr: string) => {

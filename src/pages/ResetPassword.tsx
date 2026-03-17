@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -23,6 +23,7 @@ export default function ResetPassword() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const redirectTimerRef = useRef<ReturnType<typeof setTimeout>>();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [errors, setErrors] = useState<{ password?: string; confirm?: string }>({});
@@ -46,7 +47,10 @@ export default function ResetPassword() {
       setCheckingSession(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(redirectTimerRef.current);
+    };
   }, []);
 
   const validate = (): boolean => {
@@ -96,7 +100,7 @@ export default function ResetPassword() {
       toast.success('Senha redefinida com sucesso!');
 
       // Sign out and redirect to login after 3 seconds
-      setTimeout(async () => {
+      redirectTimerRef.current = setTimeout(async () => {
         try {
           await supabase.auth.signOut();
         } catch (err) {

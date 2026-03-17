@@ -35,20 +35,24 @@ export function usePushNotifications() {
   }, []);
 
   useEffect(() => {
+    let isMounted = true;
     const checkSupport = async () => {
       const supported = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+      if (!isMounted) return;
       setIsSupported(supported);
-      
+
       if (supported) {
         setPermission(Notification.permission);
         await fetchVapidKey();
+        if (!isMounted) return;
         await checkSubscription();
       }
-      
-      setIsLoading(false);
+
+      if (isMounted) setIsLoading(false);
     };
 
     checkSupport();
+    return () => { isMounted = false; };
   }, [user, fetchVapidKey]);
 
   const checkSubscription = useCallback(async () => {

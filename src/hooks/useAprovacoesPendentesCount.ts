@@ -21,6 +21,7 @@ export const useAprovacoesPendentesCount = () => {
   });
 
   useEffect(() => {
+    let isMounted = true;
     // Subscribe to real-time changes on solicitacoes_aprovacao
     const channel = supabase
       .channel('aprovacoes-pendentes-realtime')
@@ -37,8 +38,8 @@ export const useAprovacoesPendentesCount = () => {
             .from('solicitacoes_aprovacao')
             .select('*', { count: 'exact', head: true })
             .eq('status', 'pendente');
-          
-          setRealtimeCount(count || 0);
+
+          if (isMounted) setRealtimeCount(count || 0);
           queryClient.invalidateQueries({ queryKey: ['aprovacoes-pendentes-count'] });
           queryClient.invalidateQueries({ queryKey: ['solicitacoes-pendentes'] });
         }
@@ -46,6 +47,7 @@ export const useAprovacoesPendentesCount = () => {
       .subscribe();
 
     return () => {
+      isMounted = false;
       supabase.removeChannel(channel);
     };
   }, [queryClient]);
