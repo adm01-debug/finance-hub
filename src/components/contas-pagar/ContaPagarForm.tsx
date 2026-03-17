@@ -281,7 +281,7 @@ export function ContaPagarForm({ open, onOpenChange, conta }: ContaPagarFormProp
     
     toast({
       title: 'Dados preenchidos automaticamente',
-      description: `Boleto do ${dados.banco} no valor de R$ ${dados.valor.toFixed(2)}`,
+      description: `Boleto do ${dados.banco} no valor de R$ ${(dados.valor ?? 0).toFixed(2)}`,
     });
   };
 

@@ -101,11 +101,11 @@ export default function BI() {
   // Calculate KPIs
   const kpis = useMemo(() => {
     const saldoTotal = filteredContas.reduce((acc, c) => acc + (c.saldo_atual || 0), 0);
-    const totalReceber = filteredReceber.filter(c => c.status !== 'pago' && c.status !== 'cancelado').reduce((acc, c) => acc + c.valor, 0);
-    const totalPagar = filteredPagar.filter(c => c.status !== 'pago' && c.status !== 'cancelado').reduce((acc, c) => acc + c.valor, 0);
-    
+    const totalReceber = filteredReceber.filter(c => c.status !== 'pago' && c.status !== 'cancelado').reduce((acc, c) => acc + (c.valor || 0), 0);
+    const totalPagar = filteredPagar.filter(c => c.status !== 'pago' && c.status !== 'cancelado').reduce((acc, c) => acc + (c.valor || 0), 0);
+
     const vencidasReceber = filteredReceber.filter(c => c.status === 'vencido');
-    const totalVencidasReceber = vencidasReceber.reduce((acc, c) => acc + c.valor, 0);
+    const totalVencidasReceber = vencidasReceber.reduce((acc, c) => acc + (c.valor || 0), 0);
     const inadimplencia = totalReceber > 0 ? (totalVencidasReceber / totalReceber) * 100 : 0;
 
     const receitaMes = filteredReceber
@@ -300,15 +300,15 @@ export default function BI() {
         .reduce((acc, c) => acc + (c.valor_recebido || c.valor), 0);
       const despesaTotal = empresaPagar.filter(c => c.status === 'pago')
         .reduce((acc, c) => acc + (c.valor_pago || c.valor), 0);
-      const saldo = empresaContas.reduce((acc, c) => acc + c.saldo_atual, 0);
-      
+      const saldo = empresaContas.reduce((acc, c) => acc + (c.saldo_atual || 0), 0);
+
       const aReceber = empresaReceber.filter(c => c.status !== 'pago' && c.status !== 'cancelado')
-        .reduce((acc, c) => acc + c.valor, 0);
+        .reduce((acc, c) => acc + (c.valor || 0), 0);
       const aPagar = empresaPagar.filter(c => c.status !== 'pago' && c.status !== 'cancelado')
-        .reduce((acc, c) => acc + c.valor, 0);
-      
+        .reduce((acc, c) => acc + (c.valor || 0), 0);
+
       const vencidas = empresaReceber.filter(c => c.status === 'vencido')
-        .reduce((acc, c) => acc + c.valor, 0);
+        .reduce((acc, c) => acc + (c.valor || 0), 0);
       const inadimplencia = aReceber > 0 ? (vencidas / aReceber) * 100 : 0;
       
       const lucro = receitaTotal - despesaTotal;
@@ -720,7 +720,7 @@ export default function BI() {
                         cy="50%"
                         outerRadius={100}
                         dataKey="valor"
-                        label={({ nome, percent }) => `${nome.substring(0, 10)}... ${(percent * 100).toFixed(0)}%`}
+                        label={({ nome, percent }) => `${(nome || '').substring(0, 10)}... ${((percent ?? 0) * 100).toFixed(0)}%`}
                         labelLine={false}
                       >
                         {distribuicaoCentros.map((_, index) => (

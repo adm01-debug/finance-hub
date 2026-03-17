@@ -611,7 +611,7 @@ export default function DashboardReceber() {
                   kpis.taxaInadimplencia > 20 ? "text-destructive" : 
                   kpis.taxaInadimplencia > 10 ? "text-warning" : "text-success"
                 )}>
-                  {kpis.taxaInadimplencia.toFixed(1)}%
+                  {(kpis.taxaInadimplencia ?? 0).toFixed(1)}%
                 </span>
               </div>
               <Progress 
@@ -693,7 +693,7 @@ export default function DashboardReceber() {
                         outerRadius={100}
                         paddingAngle={2}
                         dataKey="value"
-                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
                       >
                         {agingData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.fill} />
@@ -748,7 +748,7 @@ export default function DashboardReceber() {
                         <p className="font-bold">{formatCurrency(cliente.valor)}</p>
                         {cliente.vencido > 0 && (
                           <p className="text-xs text-destructive">
-                            {((cliente.vencido / cliente.valor) * 100).toFixed(0)}% vencido
+                            {cliente.valor > 0 ? ((cliente.vencido / cliente.valor) * 100).toFixed(0) : 0}% vencido
                           </p>
                         )}
                       </div>
