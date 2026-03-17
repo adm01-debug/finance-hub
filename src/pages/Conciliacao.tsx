@@ -225,8 +225,8 @@ export default function Conciliacao() {
       end.setHours(23, 59, 59);
       if (t.data > end) return false;
     }
-    if (filters.valorMin && t.valor < parseFloat(filters.valorMin)) return false;
-    if (filters.valorMax && t.valor > parseFloat(filters.valorMax)) return false;
+    if (filters.valorMin) { const min = parseFloat(filters.valorMin); if (!isNaN(min) && t.valor < min) return false; }
+    if (filters.valorMax) { const max = parseFloat(filters.valorMax); if (!isNaN(max) && t.valor > max) return false; }
 
     return matchesSearch && matchesTab;
   }), [transacoes, debouncedSearch, statusTab, filters]);

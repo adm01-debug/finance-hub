@@ -904,7 +904,7 @@ function BlingFinanceiroPanel() {
                         <TableCell className="font-mono text-xs">{f.id}</TableCell>
                         <TableCell className="font-medium">{f.descricao}</TableCell>
                         <TableCell><Badge variant="outline">{f.tipoPagamento || '-'}</Badge></TableCell>
-                        <TableCell><Badge variant={f.situacao === 'A' || f.situacao === 1 ? 'default' : 'secondary'}>{f.situacao === 'A' || f.situacao === 1 ? 'Ativo' : 'Inativo'}</Badge></TableCell>
+                        <TableCell><Badge variant={String(f.situacao) === 'A' || String(f.situacao) === '1' ? 'default' : 'secondary'}>{String(f.situacao) === 'A' || String(f.situacao) === '1' ? 'Ativo' : 'Inativo'}</Badge></TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

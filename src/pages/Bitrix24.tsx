@@ -114,6 +114,7 @@ export default function Bitrix24() {
   const formatRelativeTime = (dateStr: string | undefined) => {
     if (!dateStr) return 'Nunca';
     const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return 'Data inválida';
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffMins = Math.floor(diffMs / 60000);

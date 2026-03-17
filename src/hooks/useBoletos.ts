@@ -135,39 +135,49 @@ export function useBoletos() {
       if (!empresa) throw new Error('Empresa não encontrada');
       if (!contaBancaria) throw new Error('Conta bancária não encontrada');
 
-      const numero = await getNextBoletoNumber();
       const linhaDigitavel = generateLinhaDigitavel(data.valor, data.vencimento);
       const codigoBarras = generateCodigoBarras(data.valor);
 
-      const boletoData = {
-        numero,
-        valor: data.valor,
-        vencimento: data.vencimento,
-        sacado_nome: data.sacado_nome,
-        sacado_cpf_cnpj: data.sacado_cpf_cnpj,
-        cedente_nome: empresa.razao_social,
-        cedente_cnpj: empresa.cnpj,
-        banco: contaBancaria.banco,
-        agencia: contaBancaria.agencia,
-        conta: contaBancaria.conta,
-        linha_digitavel: linhaDigitavel,
-        codigo_barras: codigoBarras,
-        status: 'gerado',
-        descricao: data.descricao || null,
-        conta_receber_id: data.conta_receber_id || null,
-        conta_bancaria_id: data.conta_bancaria_id,
-        empresa_id: data.empresa_id,
-        created_by: user.id,
-      };
+      // Retry loop to handle race condition on duplicate boleto numbers
+      const MAX_RETRIES = 3;
+      for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+        const numero = await getNextBoletoNumber();
 
-      const { data: newBoleto, error } = await supabase
-        .from('boletos')
-        .insert(boletoData)
-        .select()
-        .single();
+        const boletoData = {
+          numero,
+          valor: data.valor,
+          vencimento: data.vencimento,
+          sacado_nome: data.sacado_nome,
+          sacado_cpf_cnpj: data.sacado_cpf_cnpj,
+          cedente_nome: empresa.razao_social,
+          cedente_cnpj: empresa.cnpj,
+          banco: contaBancaria.banco,
+          agencia: contaBancaria.agencia,
+          conta: contaBancaria.conta,
+          linha_digitavel: linhaDigitavel,
+          codigo_barras: codigoBarras,
+          status: 'gerado',
+          descricao: data.descricao || null,
+          conta_receber_id: data.conta_receber_id || null,
+          conta_bancaria_id: data.conta_bancaria_id,
+          empresa_id: data.empresa_id,
+          created_by: user.id,
+        };
 
-      if (error) throw error;
-      return newBoleto;
+        const { data: newBoleto, error } = await supabase
+          .from('boletos')
+          .insert(boletoData)
+          .select()
+          .single();
+
+        if (error) {
+          // If duplicate numero conflict, retry with a new number
+          if (error.code === '23505' && attempt < MAX_RETRIES - 1) continue;
+          throw error;
+        }
+        return newBoleto;
+      }
+      throw new Error('Falha ao gerar número único para o boleto');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['boletos'] });
