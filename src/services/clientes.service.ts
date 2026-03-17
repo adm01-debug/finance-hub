@@ -74,9 +74,9 @@ export const clientesService = {
       .from('clientes')
       .select('*')
       .eq('cnpj_cpf', cpfCnpj)
-      .single();
+      .maybeSingle();
 
-    if (error && error.code !== 'PGRST116') throw error;
+    if (error) throw error;
     return data;
   },
 

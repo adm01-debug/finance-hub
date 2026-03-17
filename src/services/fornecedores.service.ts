@@ -80,9 +80,9 @@ export const fornecedoresService = {
       .from('fornecedores')
       .select('*')
       .eq('cnpj', cnpj)
-      .single();
+      .maybeSingle();
 
-    if (error && error.code !== 'PGRST116') throw error;
+    if (error) throw error;
     return data;
   },
 
