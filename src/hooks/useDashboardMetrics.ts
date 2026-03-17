@@ -202,7 +202,7 @@ export function useDashboardMetrics(filters: DashboardFilters) {
 
   // Fluxo de caixa projetado
   const fluxoCaixaProjetado = useMemo(() => {
-    const dias = parseInt(periodoFluxo);
+    const dias = parseInt(periodoFluxo, 10) || 30;
     const result = [];
     let saldoAcumulado = saldoTotal;
 

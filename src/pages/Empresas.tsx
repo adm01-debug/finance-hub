@@ -62,7 +62,7 @@ export default function Empresas() {
   const empresasFiltradas = useMemo(() => empresas.filter(e => 
     e.razao_social.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (e.nome_fantasia?.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    e.cnpj.includes(searchTerm)
+    (e.cnpj || '').includes(searchTerm)
   ), [empresas, searchTerm]);
 
   const getEmpresaStats = (empresaId: string) => {
@@ -560,7 +560,7 @@ export default function Empresas() {
                   <div>
                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Contexto Ativo</p>
                     <p className="font-semibold text-foreground">
-                      {empresas.find(e => e.id === selectedEmpresa)?.nome_fantasia || empresas.find(e => e.id === selectedEmpresa)?.razao_social}
+                      {(() => { const emp = empresas.find(e => e.id === selectedEmpresa); return emp?.nome_fantasia || emp?.razao_social || 'Empresa'; })()}
                     </p>
                   </div>
                 </div>

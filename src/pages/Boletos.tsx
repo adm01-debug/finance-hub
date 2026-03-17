@@ -61,7 +61,7 @@ const statusConfig = {
 // Barcode component
 const BarcodeVisual = ({ code }: { code: string }) => {
   const bars = code.split('').map((char, i) => {
-    const width = parseInt(char) % 2 === 0 ? 2 : 1;
+    const width = (parseInt(char, 10) || 0) % 2 === 0 ? 2 : 1;
     const isBlack = i % 2 === 0;
     return { width, isBlack };
   });
@@ -288,7 +288,7 @@ const NovoBoletoForm = ({
     onSubmit({
       sacado_nome: formData.sacado_nome,
       sacado_cpf_cnpj: formData.sacado_cpf_cnpj,
-      valor: parseFloat(formData.valor),
+      valor: parseFloat(formData.valor) || 0,
       vencimento: formData.vencimento,
       empresa_id: formData.empresa_id,
       conta_bancaria_id: formData.conta_bancaria_id,

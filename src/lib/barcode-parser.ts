@@ -58,7 +58,7 @@ function calculaModulo10(bloco: string): number {
   let peso = 2;
   
   for (let i = bloco.length - 1; i >= 0; i--) {
-    let resultado = parseInt(bloco[i]) * peso;
+    let resultado = parseInt(bloco[i], 10) * peso;
     if (resultado > 9) {
       resultado = Math.floor(resultado / 10) + (resultado % 10);
     }
@@ -78,7 +78,7 @@ function calculaModulo11(bloco: string): number {
   let peso = 2;
   
   for (let i = bloco.length - 1; i >= 0; i--) {
-    soma += parseInt(bloco[i]) * peso;
+    soma += parseInt(bloco[i], 10) * peso;
     peso = peso === 9 ? 2 : peso + 1;
   }
   
@@ -241,15 +241,15 @@ export function parseBoleto(codigo: string): DadosBoleto {
   const banco = BANCOS[codigoBanco] || `Banco ${codigoBanco}`;
   
   // Fator de vencimento (posições 6-9)
-  const fatorVencimento = parseInt(codigoBarras.substring(5, 9));
+  const fatorVencimento = parseInt(codigoBarras.substring(5, 9), 10);
   const dataVencimento = fatorParaData(fatorVencimento);
-  
+
   // Valor (posições 10-19, dividir por 100)
-  const valorCentavos = parseInt(codigoBarras.substring(9, 19));
+  const valorCentavos = parseInt(codigoBarras.substring(9, 19), 10);
   const valor = valorCentavos / 100;
-  
+
   // Validar DV geral
-  const dvInformado = parseInt(codigoBarras.substring(4, 5));
+  const dvInformado = parseInt(codigoBarras.substring(4, 5), 10);
   const codigoSemDv = codigoBarras.substring(0, 4) + codigoBarras.substring(5);
   const dvCalculado = calculaModulo11(codigoSemDv);
   

@@ -290,7 +290,7 @@ export function generateBoletoPDF(boleto: BoletoData): void {
 
 function generateBarcodeHTML(code: string): string {
   const bars = code.split('').map((char, i) => {
-    const width = parseInt(char) % 2 === 0 ? 2 : 1;
+    const width = (parseInt(char, 10) || 0) % 2 === 0 ? 2 : 1;
     const isBlack = i % 2 === 0;
     return `<div style="width: ${width}px; height: 100%; background: ${isBlack ? '#000' : '#fff'};"></div>`;
   });

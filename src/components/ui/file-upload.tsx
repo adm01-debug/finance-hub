@@ -87,8 +87,11 @@ export function FileUpload({
             const progressInterval = setInterval(() => {
               setFiles((prev) => prev.map((f) => f.id === fileInfo.id && f.progress < 90 ? { ...f, progress: f.progress + 10 } : f));
             }, 100);
-            await onUpload([fileInfo.file]);
-            clearInterval(progressInterval);
+            try {
+              await onUpload([fileInfo.file]);
+            } finally {
+              clearInterval(progressInterval);
+            }
             setFiles((prev) => prev.map((f) => f.id === fileInfo.id ? { ...f, status: 'success', progress: 100 } : f));
           } catch {
             setFiles((prev) => prev.map((f) => f.id === fileInfo.id ? { ...f, status: 'error', error: 'Falha no upload' } : f));

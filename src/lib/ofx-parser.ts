@@ -376,9 +376,9 @@ function parseData(dateStr: string): Date {
   // DD/MM/YYYY or DD-MM-YYYY
   let match = cleaned.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
   if (match) {
-    const day = parseInt(match[1]);
-    const month = parseInt(match[2]) - 1;
-    let year = parseInt(match[3]);
+    const day = parseInt(match[1], 10);
+    const month = parseInt(match[2], 10) - 1;
+    let year = parseInt(match[3], 10);
     if (year < 100) year += 2000;
     return new Date(year, month, day);
   }
@@ -386,7 +386,7 @@ function parseData(dateStr: string): Date {
   // YYYY-MM-DD or YYYY/MM/DD
   match = cleaned.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
   if (match) {
-    return new Date(parseInt(match[1]), parseInt(match[2]) - 1, parseInt(match[3]));
+    return new Date(parseInt(match[1], 10), parseInt(match[2], 10) - 1, parseInt(match[3], 10));
   }
   
   // Try native parsing

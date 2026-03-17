@@ -150,7 +150,7 @@ export default function FluxoCaixa() {
           <motion.div variants={itemVariants}>
             <IndicadorCobertura 
               saldoAtual={kpis?.saldoTotal || 0}
-              despesaMediaDiaria={totalDespesas / dias}
+              despesaMediaDiaria={dias > 0 ? totalDespesas / dias : 0}
               isLoading={loadingKpis}
             />
           </motion.div>
@@ -168,7 +168,7 @@ export default function FluxoCaixa() {
             projecoes={dadosCenarioAtivo}
             saldoAtual={kpis?.saldoTotal || 0}
             cenarioAtivo={cenarioAtivo}
-            diasCobertura={Math.floor((kpis?.saldoTotal || 0) / (totalDespesas / dias || 1))}
+            diasCobertura={Math.floor((kpis?.saldoTotal || 0) / (dias > 0 ? totalDespesas / dias : 1))}
           />
         </motion.div>
 

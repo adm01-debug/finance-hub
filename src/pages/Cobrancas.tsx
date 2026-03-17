@@ -372,7 +372,7 @@ export default function Cobrancas() {
                         <div>
                           <p className="font-medium text-sm">{devedor.cliente_nome}</p>
                           <p className="text-xs text-muted-foreground">
-                            {devedor.dias_atraso} dias • {devedor.qtd_titulos} título{devedor.qtd_titulos > 1 ? 's' : ''}
+                            {devedor.dias_atraso ?? 0} dias • {devedor.qtd_titulos ?? 0} título{(devedor.qtd_titulos ?? 0) > 1 ? 's' : ''}
                           </p>
                         </div>
                       </div>

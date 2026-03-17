@@ -74,10 +74,10 @@ export function ProactiveSuggestions({ onSuggestionClick }: ProactiveSuggestions
         .in('status', ['pendente', 'vencido'])
         .lte('data_vencimento', em30Dias.toISOString().split('T')[0]);
 
-      const saldoAtual = saldos?.reduce((sum, c) => sum + Number(c.saldo_atual), 0) || 0;
-      const totalPagar = contasPagar?.reduce((sum, c) => sum + Number(c.valor), 0) || 0;
+      const saldoAtual = saldos?.reduce((sum, c) => sum + (Number(c.saldo_atual) || 0), 0) || 0;
+      const totalPagar = contasPagar?.reduce((sum, c) => sum + (Number(c.valor) || 0), 0) || 0;
       const totalReceber = contasReceber?.filter(c => c.status === 'pendente')
-        .reduce((sum, c) => sum + Number(c.valor), 0) || 0;
+        .reduce((sum, c) => sum + (Number(c.valor) || 0), 0) || 0;
       const saldoProjetado = saldoAtual + totalReceber - totalPagar;
 
       if (saldoProjetado < 0) {

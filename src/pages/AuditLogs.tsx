@@ -114,7 +114,7 @@ export default function AuditLogs() {
     log.user_email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     log.details?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     log.table_name?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  ) ?? [];
 
   // Detectar alertas de segurança
   const securityAlerts = useMemo(() => {

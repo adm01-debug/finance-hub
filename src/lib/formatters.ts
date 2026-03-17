@@ -64,6 +64,7 @@ export const formatNumber = (value: number): string => {
 
 export const getDaysUntil = (date: Date | string): number => {
   const d = new Date(typeof date === 'string' ? date : date.getTime());
+  if (isNaN(d.getTime())) return 0;
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   d.setHours(0, 0, 0, 0);
@@ -224,7 +225,17 @@ export const formatAverageDays = (days: number): string => {
  * Formata valor para input de moeda
  */
 export const parseCurrencyInput = (value: string): number => {
-  const cleaned = value.replace(/[^\d,.-]/g, '').replace(',', '.');
+  if (!value) return 0;
+  // Remove everything except digits, commas, dots, minus
+  let cleaned = value.replace(/[^\d,.-]/g, '');
+  // Handle Brazilian format: 1.234,56 → replace last comma as decimal
+  const lastComma = cleaned.lastIndexOf(',');
+  const lastDot = cleaned.lastIndexOf('.');
+  if (lastComma > lastDot) {
+    cleaned = cleaned.replace(/\./g, '').replace(',', '.');
+  } else if (lastDot > lastComma) {
+    cleaned = cleaned.replace(/,/g, '');
+  }
   return parseFloat(cleaned) || 0;
 };
 

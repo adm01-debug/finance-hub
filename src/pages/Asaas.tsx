@@ -87,14 +87,16 @@ export default function Asaas() {
     try {
       const result = await consultarSaldo.mutateAsync();
       setSaldo(result);
-    } catch { } finally {
+    } catch (error) {
+      console.error('Erro ao consultar saldo:', error);
+    } finally {
       setLoadingSaldo(false);
     }
   };
 
   const handleCancelar = async () => {
     if (!cancelConfirm) return;
-    try { await cancelarCobranca.mutateAsync(cancelConfirm); } catch { }
+    try { await cancelarCobranca.mutateAsync(cancelConfirm); } catch (error) { console.error('Erro ao cancelar cobrança:', error); }
     setCancelConfirm(null);
   };
 

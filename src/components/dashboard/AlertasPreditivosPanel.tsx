@@ -162,7 +162,7 @@ export function AlertasPreditivosPanel({
             <div className="space-y-3">
               <AnimatePresence>
                 {alertasOrdenados.map((alerta, index) => {
-                  const Icon = ALERTA_ICONS[alerta.tipo];
+                  const Icon = ALERTA_ICONS[alerta.tipo as keyof typeof ALERTA_ICONS] ?? AlertTriangle;
                   
                   return (
                     <motion.div
