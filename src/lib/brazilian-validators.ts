@@ -9,6 +9,7 @@
  * @returns boolean indicating if CPF is valid
  */
 export function validateCPF(cpf: string): boolean {
+  if (!cpf) return false;
   // Remove non-numeric characters
   const cleanCPF = cpf.replace(/\D/g, '');
 
@@ -53,6 +54,7 @@ export function validateCPF(cpf: string): boolean {
  * @returns boolean indicating if CNPJ is valid
  */
 export function validateCNPJ(cnpj: string): boolean {
+  if (!cnpj) return false;
   // Remove non-numeric characters
   const cleanCNPJ = cnpj.replace(/\D/g, '');
 
@@ -99,6 +101,7 @@ export function validateCNPJ(cnpj: string): boolean {
  * @returns boolean indicating if document is valid
  */
 export function validateCPFOrCNPJ(document: string): boolean {
+  if (!document) return false;
   const cleanDocument = document.replace(/\D/g, '');
   
   if (cleanDocument.length === 11) {
@@ -228,6 +231,7 @@ export function generateCNPJ(): string {
  * @returns boolean indicating if phone is valid
  */
 export function validatePhone(phone: string): boolean {
+  if (!phone) return false;
   const cleanPhone = phone.replace(/\D/g, '');
   
   // Valid formats: 10 digits (landline) or 11 digits (mobile)
@@ -274,6 +278,7 @@ export function formatPhone(phone: string): string {
  * @returns boolean indicating if CEP is valid
  */
 export function validateCEP(cep: string): boolean {
+  if (!cep) return false;
   const cleanCEP = cep.replace(/\D/g, '');
   return cleanCEP.length === 8 && /^\d{8}$/.test(cleanCEP);
 }
@@ -305,7 +310,7 @@ export function validateState(state: string): boolean {
     'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'
   ];
   
-  return validStates.includes(state.toUpperCase());
+  return !!state && validStates.includes(state.toUpperCase());
 }
 
 /**
@@ -391,6 +396,7 @@ export function getAllStates(): Array<{ abbr: string; name: string }> {
  * @returns boolean indicating if bank account format is valid
  */
 export function validateBankAccount(bank: string, agency: string, account: string): boolean {
+  if (!bank || !agency || !account) return false;
   // Basic validation - can be enhanced with specific bank rules
   const cleanBank = bank.replace(/\D/g, '');
   const cleanAgency = agency.replace(/\D/g, '');
@@ -421,6 +427,7 @@ export function validateBankAccount(bank: string, agency: string, account: strin
  * @returns boolean indicating if PIX key is valid
  */
 export function validatePIXKey(key: string, type?: 'cpf' | 'cnpj' | 'phone' | 'email' | 'random'): boolean {
+  if (!key) return false;
   const cleanKey = key.trim();
   
   // Auto-detect type if not provided

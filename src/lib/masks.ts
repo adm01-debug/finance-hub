@@ -1,6 +1,7 @@
 // Mask utilities for Brazilian document and phone formats
 
 export function maskCnpjCpf(value: string): string {
+  if (!value) return '';
   const digits = value.replace(/\D/g, '');
   
   if (digits.length <= 11) {
@@ -22,6 +23,7 @@ export function maskCnpjCpf(value: string): string {
 
 // Alias functions for better semantics
 export function applyCnpjMask(value: string): string {
+  if (!value) return '';
   const digits = value.replace(/\D/g, '').substring(0, 14);
   return digits
     .replace(/(\d{2})(\d)/, '$1.$2')
@@ -35,11 +37,13 @@ export function applyPhoneMask(value: string): string {
 }
 
 export function applyCepMask(value: string): string {
+  if (!value) return '';
   const digits = value.replace(/\D/g, '').substring(0, 8);
   return digits.replace(/(\d{5})(\d{1,3})$/, '$1-$2');
 }
 
 export function maskPhone(value: string): string {
+  if (!value) return '';
   const digits = value.replace(/\D/g, '');
   
   if (digits.length <= 10) {
@@ -57,11 +61,13 @@ export function maskPhone(value: string): string {
 }
 
 export function unmask(value: string): string {
+  if (!value) return '';
   return value.replace(/\D/g, '');
 }
 
 // Validate CPF using the official algorithm
 export function validateCPF(cpf: string): boolean {
+  if (!cpf) return false;
   const digits = cpf.replace(/\D/g, '');
   
   if (digits.length !== 11) return false;
@@ -92,6 +98,7 @@ export function validateCPF(cpf: string): boolean {
 
 // Validate CNPJ using the official algorithm
 export function validateCNPJ(cnpj: string): boolean {
+  if (!cnpj) return false;
   const digits = cnpj.replace(/\D/g, '');
   
   if (digits.length !== 14) return false;
@@ -124,6 +131,7 @@ export function validateCNPJ(cnpj: string): boolean {
 
 // Validate either CPF or CNPJ based on length
 export function validateCnpjCpf(value: string): { valid: boolean; type: 'cpf' | 'cnpj' | null; message?: string } {
+  if (!value) return { valid: true, type: null };
   const digits = value.replace(/\D/g, '');
   
   if (!digits) return { valid: true, type: null }; // Empty is valid (optional field)
