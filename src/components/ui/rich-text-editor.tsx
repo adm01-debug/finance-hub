@@ -115,7 +115,10 @@ function simpleMarkdownToHtml(markdown: string): string {
     .replace(/^### (.*$)/gim, '<h3>$1</h3>').replace(/^## (.*$)/gim, '<h2>$1</h2>').replace(/^# (.*$)/gim, '<h1>$1</h1>')
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/__(.+?)__/g, '<strong>$1</strong>')
     .replace(/\*(.+?)\*/g, '<em>$1</em>').replace(/_(.+?)_/g, '<em>$1</em>')
-    .replace(/`(.+?)`/g, '<code>$1</code>').replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
+    .replace(/`(.+?)`/g, '<code>$1</code>').replace(/\[(.+?)\]\((.+?)\)/g, (_match, text, url) => {
+      try { const parsed = new URL(url, 'https://x.com'); if (!['http:', 'https:', 'mailto:'].includes(parsed.protocol)) return text; } catch { return text; }
+      return `<a href="${url}" target="_blank" rel="noopener noreferrer">${text}</a>`;
+    })
     .replace(/\n/g, '<br>').replace(/^\s*[-*]\s+(.*)$/gim, '<li>$1</li>').replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
 }
 

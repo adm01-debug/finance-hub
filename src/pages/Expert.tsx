@@ -42,6 +42,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
+import { supabase } from '@/integrations/supabase/client';
 import { useExpertContext } from '@/hooks/useExpertContext';
 import { useExpertActions, ExpertAction } from '@/hooks/useExpertActions';
 import { 
@@ -287,11 +288,12 @@ export default function Expert() {
     const assistantId = crypto.randomUUID();
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
       const response = await fetch(CHAT_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          'Authorization': `Bearer ${session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
         body: JSON.stringify({
           messages: [...messages, userMessage].map(m => ({
