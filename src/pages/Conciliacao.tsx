@@ -46,7 +46,7 @@ import { useContasBancarias } from '@/hooks/useFinancialData';
 import { useConciliacao } from '@/hooks/useConciliacao';
 import { ImportarExtratoDialog } from '@/components/conciliacao/ImportarExtratoDialog';
 import { SugestoesMatchIA } from '@/components/conciliacao/SugestoesMatchIA';
-import { ConciliacaoManualDialog } from '@/components/conciliacao/ConciliacaoManualDialog';
+import { ConciliacaoManualDialog, type TransacaoExtrato } from '@/components/conciliacao/ConciliacaoManualDialog';
 import { ExtratoOFX, TransacaoOFX } from '@/lib/ofx-parser';
 import { 
   LancamentoSistema, 
@@ -66,12 +66,7 @@ const itemVariants = {
   visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 24 } },
 } as const;
 
-interface TransacaoExtrato {
-  id: string;
-  data: Date;
-  descricao: string;
-  valor: number;
-  tipo: 'credito' | 'debito';
+interface TransacaoExtratoConciliacao extends TransacaoExtrato {
   conciliada: boolean;
 }
 
@@ -83,7 +78,7 @@ export default function Conciliacao() {
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [showManualDialog, setShowManualDialog] = useState(false);
   const [selectedTransacaoManual, setSelectedTransacaoManual] = useState<TransacaoExtrato | null>(null);
-  const [transacoes, setTransacoes] = useState<TransacaoExtrato[]>([]);
+  const [transacoes, setTransacoes] = useState<TransacaoExtratoConciliacao[]>([]);
   const [extratoImportado, setExtratoImportado] = useState<ExtratoOFX | null>(null);
   const [transacoesImportadas, setTransacoesImportadas] = useState<TransacaoOFX[]>([]);
 

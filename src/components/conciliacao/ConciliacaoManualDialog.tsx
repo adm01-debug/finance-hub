@@ -19,7 +19,7 @@ import { cn } from '@/lib/utils';
 import { useConciliacao } from '@/hooks/useConciliacao';
 import { LancamentoSistema } from '@/lib/transaction-matcher';
 
-interface TransacaoExtrato {
+export interface TransacaoExtrato {
   id: string;
   data: Date;
   descricao: string;
