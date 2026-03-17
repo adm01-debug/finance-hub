@@ -182,11 +182,11 @@ export const fornecedoresService = {
 
     const totalPendente = contas
       .filter(c => c.status === 'pendente')
-      .reduce((sum, c) => sum + c.valor, 0);
+      .reduce((sum, c) => sum + (c.valor || 0), 0);
 
     const totalPago = contas
       .filter(c => c.status === 'pago')
-      .reduce((sum, c) => sum + c.valor, 0);
+      .reduce((sum, c) => sum + (c.valor || 0), 0);
 
     const contasAbertas = contas.filter(c => c.status === 'pendente').length;
     
@@ -255,10 +255,18 @@ export const fornecedoresService = {
       f.ativo ? 'Sim' : 'Não',
     ]);
 
-    const csv = [headers, ...rows].map(row => row.join(',')).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
+    const escapeCsv = (val: unknown): string => {
+      if (val === null || val === undefined) return '';
+      const str = String(val);
+      if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    };
+    const csv = [headers, ...rows.map(r => r.map(escapeCsv))].map(row => row.join(',')).join('\n');
+    const blob = new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
-    
+
     const link = document.createElement('a');
     link.href = url;
     link.download = `fornecedores-${new Date().toISOString().split('T')[0]}.csv`;

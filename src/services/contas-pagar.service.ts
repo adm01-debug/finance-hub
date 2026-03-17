@@ -274,7 +274,16 @@ export const contasPagarService = {
 
   async exportToCSV(filters?: ContaPagarFilters): Promise<string> {
     const contas = await this.getAll(filters);
-    
+
+    const escapeCsv = (val: unknown): string => {
+      if (val === null || val === undefined) return '';
+      const str = String(val);
+      if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    };
+
     const headers = ['ID', 'Descrição', 'Valor', 'Vencimento', 'Status', 'Fornecedor', 'Categoria', 'Data Pagamento'];
     const rows = contas.map((c: any) => [
       c.id,
@@ -285,17 +294,17 @@ export const contasPagarService = {
       c.fornecedor_nome || '',
       c.categoria || '',
       c.data_pagamento || '',
-    ]);
+    ].map(escapeCsv));
 
     const csv = [headers, ...rows].map(row => row.join(',')).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
+    const blob = new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
-    
+
     const link = document.createElement('a');
     link.href = url;
     link.download = `contas-pagar-${new Date().toISOString().split('T')[0]}.csv`;
     link.click();
-    
+
     URL.revokeObjectURL(url);
     return link.download;
   },

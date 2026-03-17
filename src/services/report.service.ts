@@ -138,7 +138,7 @@ export const reportService = {
 
   async getDespesasByCategoria(filters: ReportFilters = {}): Promise<CategoryReport[]> {
     const { startDate, endDate } = filters;
-    let query = supabase.from('contas_pagar').select('tipo_cobranca, valor');
+    let query = supabase.from('contas_pagar').select('categoria, valor');
     if (startDate) query = query.gte('data_vencimento', startDate);
     if (endDate) query = query.lte('data_vencimento', endDate);
     const { data } = await query;
@@ -147,7 +147,7 @@ export const reportService = {
     let grandTotal = 0;
 
     (data || []).forEach(conta => {
-      const categoria = (conta as any).tipo_cobranca || 'Sem categoria';
+      const categoria = conta.categoria || 'Sem categoria';
       const existing = categoriaMap.get(categoria) || { total: 0, quantidade: 0 };
       existing.total += conta.valor || 0;
       existing.quantidade += 1;
@@ -165,7 +165,7 @@ export const reportService = {
 
   async getReceitasByCategoria(filters: ReportFilters = {}): Promise<CategoryReport[]> {
     const { startDate, endDate } = filters;
-    let query = supabase.from('contas_receber').select('tipo_cobranca, valor');
+    let query = supabase.from('contas_receber').select('categoria, valor');
     if (startDate) query = query.gte('data_vencimento', startDate);
     if (endDate) query = query.lte('data_vencimento', endDate);
     const { data } = await query;
@@ -174,7 +174,7 @@ export const reportService = {
     let grandTotal = 0;
 
     (data || []).forEach(conta => {
-      const categoria = (conta as any).tipo_cobranca || 'Sem categoria';
+      const categoria = conta.categoria || 'Sem categoria';
       const existing = categoriaMap.get(categoria) || { total: 0, quantidade: 0 };
       existing.total += conta.valor || 0;
       existing.quantidade += 1;
@@ -215,7 +215,7 @@ export const reportService = {
   async getByFornecedor(filters: ReportFilters = {}): Promise<FornecedorReport[]> {
     const { startDate, endDate } = filters;
     const today = new Date().toISOString().split('T')[0];
-    const { data: fornecedores } = await supabase.from('fornecedores').select('id, nome_fantasia');
+    const { data: fornecedores } = await supabase.from('fornecedores').select('id, razao_social, nome_fantasia');
 
     let query = supabase.from('contas_pagar').select('*');
     if (startDate) query = query.gte('data_vencimento', startDate);
@@ -225,7 +225,7 @@ export const reportService = {
     return (fornecedores || []).map(fornecedor => {
       const contasFornecedor = (contas || []).filter(c => c.fornecedor_id === fornecedor.id);
       return {
-        fornecedor: { id: fornecedor.id, nome: fornecedor.nome_fantasia || '' },
+        fornecedor: { id: fornecedor.id, nome: fornecedor.nome_fantasia || fornecedor.razao_social },
         totalPagar: contasFornecedor.filter(c => c.status !== 'pago').reduce((sum, c) => sum + (c.valor || 0), 0),
         totalPago: contasFornecedor.filter(c => c.status === 'pago').reduce((sum, c) => sum + (c.valor || 0), 0),
         contasAbertas: contasFornecedor.filter(c => c.status !== 'pago').length,
@@ -288,13 +288,17 @@ export const reportService = {
   exportToCSV(data: Record<string, unknown>[], filename: string): void {
     if (!data.length) return;
     const headers = Object.keys(data[0]);
+    const escapeCsvValue = (value: unknown): string => {
+      if (value === null || value === undefined) return '';
+      const str = String(value);
+      if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    };
     const csvContent = [
       headers.join(','),
-      ...data.map(row => headers.map(header => {
-        const value = row[header];
-        if (typeof value === 'string' && value.includes(',')) return `"${value}"`;
-        return value;
-      }).join(',')),
+      ...data.map(row => headers.map(header => escapeCsvValue(row[header])).join(',')),
     ].join('\n');
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });

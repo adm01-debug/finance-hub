@@ -131,7 +131,7 @@ export function useDashboard(options: UseDashboardOptions = {}) {
           type: 'entrada' as const,
           description: c.descricao,
           value: c.valor,
-          date: c.data_recebimento || c.vencimento,
+          date: c.data_recebimento || c.vencimento || c.data_vencimento,
           status: c.status,
         })),
         ...(pagar || []).map(c => ({
@@ -139,7 +139,7 @@ export function useDashboard(options: UseDashboardOptions = {}) {
           type: 'saida' as const,
           description: c.descricao,
           value: c.valor,
-          date: c.data_pagamento || c.vencimento,
+          date: c.data_pagamento || c.vencimento || c.data_vencimento,
           status: c.status,
         })),
       ];
@@ -166,15 +166,18 @@ export function useDashboard(options: UseDashboardOptions = {}) {
         endDate: nextWeek.toISOString().split('T')[0],
       });
 
-      return (contas || []).map(conta => ({
-        id: conta.id,
-        description: conta.descricao,
-        value: conta.valor,
-        dueDate: conta.vencimento,
-        daysUntilDue: Math.ceil(
-          (new Date(conta.vencimento).getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
-        ),
-      })).sort((a, b) => a.daysUntilDue - b.daysUntilDue);
+      return (contas || []).map(conta => {
+        const dueDate = conta.vencimento || conta.data_vencimento || '';
+        return {
+          id: conta.id,
+          description: conta.descricao,
+          value: conta.valor,
+          dueDate,
+          daysUntilDue: dueDate
+            ? Math.ceil((new Date(dueDate).getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+            : 0,
+        };
+      }).sort((a, b) => a.daysUntilDue - b.daysUntilDue);
     },
     enabled,
     staleTime: 60 * 1000,
@@ -187,15 +190,18 @@ export function useDashboard(options: UseDashboardOptions = {}) {
       const today = new Date();
       const contas = await contasPagarService.getOverdue();
 
-      return (contas || []).map(conta => ({
-        id: conta.id,
-        description: conta.descricao,
-        value: conta.valor,
-        dueDate: conta.vencimento,
-        daysOverdue: Math.ceil(
-          (today.getTime() - new Date(conta.vencimento).getTime()) / (1000 * 60 * 60 * 24)
-        ),
-      })).sort((a, b) => b.daysOverdue - a.daysOverdue);
+      return (contas || []).map(conta => {
+        const dueDate = conta.data_vencimento || conta.vencimento || '';
+        return {
+          id: conta.id,
+          description: conta.descricao,
+          value: conta.valor,
+          dueDate,
+          daysOverdue: dueDate
+            ? Math.ceil((today.getTime() - new Date(dueDate).getTime()) / (1000 * 60 * 60 * 24))
+            : 0,
+        };
+      }).sort((a, b) => b.daysOverdue - a.daysOverdue);
     },
     enabled,
     staleTime: 60 * 1000,

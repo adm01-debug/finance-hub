@@ -112,19 +112,24 @@ export function useCobrancaKPIs() {
       if (errorVencidas) throw errorVencidas;
 
       // Buscar contas recuperadas (pagas nos últimos 30 dias que estavam vencidas)
+      // Contas onde data_recebimento > data_vencimento = foram pagas após o vencimento
       const { data: recuperadas, error: errorRecuperadas } = await supabase
         .from('contas_receber')
-        .select('id, valor, valor_recebido, data_recebimento')
+        .select('id, valor, valor_recebido, data_recebimento, data_vencimento')
         .eq('status', 'pago')
         .gte('data_recebimento', trintaDiasAtras)
-        .lt('data_vencimento', 'data_recebimento');
+        .not('data_recebimento', 'is', null);
 
       if (errorRecuperadas) throw errorRecuperadas;
 
       const totalVencido = (vencidas || []).reduce((sum, c) => sum + (c.valor - (c.valor_recebido || 0)), 0);
-      const totalRecuperado = (recuperadas || []).reduce((sum, c) => sum + (c.valor_recebido || c.valor), 0);
+      // Filtrar somente as que foram pagas após o vencimento (recuperadas de inadimplência)
+      const recuperadasFiltradas = (recuperadas || []).filter(
+        c => c.data_recebimento && c.data_vencimento && c.data_recebimento > c.data_vencimento
+      );
+      const totalRecuperado = recuperadasFiltradas.reduce((sum, c) => sum + (c.valor_recebido || c.valor), 0);
       const qtdVencidas = vencidas?.length || 0;
-      const qtdRecuperadas = recuperadas?.length || 0;
+      const qtdRecuperadas = recuperadasFiltradas.length;
       
       // Taxa de recuperação
       const taxaRecuperacao = totalVencido + totalRecuperado > 0 
