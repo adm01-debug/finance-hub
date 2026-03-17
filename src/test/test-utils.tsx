@@ -178,7 +178,7 @@ interface TestContaPagar {
   descricao: string;
   valor: number;
   dataVencimento: string;
-  status: 'pendente' | 'pago' | 'atrasado' | 'cancelado';
+  status: 'pendente' | 'pago' | 'vencido' | 'parcial' | 'cancelado';
   fornecedorId?: string;
   categoriaId?: string;
 }
@@ -199,7 +199,7 @@ interface TestContaReceber {
   descricao: string;
   valor: number;
   dataVencimento: string;
-  status: 'pendente' | 'recebido' | 'atrasado' | 'cancelado';
+  status: 'pendente' | 'pago' | 'vencido' | 'parcial' | 'cancelado';
   clienteId?: string;
   categoriaId?: string;
 }

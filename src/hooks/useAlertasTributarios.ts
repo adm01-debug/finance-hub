@@ -94,20 +94,24 @@ export function useAlertasTributarios(empresaId?: string) {
 
   // Configurar listener realtime
   useEffect(() => {
+    const filterConfig: Record<string, string> = {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'alertas_tributarios',
+    };
+    if (empresaId) {
+      filterConfig.filter = `empresa_id=eq.${empresaId}`;
+    }
+
     const channel = supabase
-      .channel('alertas-tributarios-realtime')
+      .channel(`alertas-tributarios-realtime-${empresaId || 'all'}`)
       .on(
         'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'alertas_tributarios',
-        },
+        filterConfig as any,
         (payload) => {
           const novoAlerta = payload.new as AlertaTributario;
-          
+
           // Notificar usuário
-          const config = ALERTA_CONFIG[novoAlerta.tipo];
           toast[novoAlerta.prioridade === 'critica' ? 'error' : 'info'](
             novoAlerta.titulo,
             { description: novoAlerta.mensagem }
@@ -124,7 +128,8 @@ export function useAlertasTributarios(empresaId?: string) {
           event: 'UPDATE',
           schema: 'public',
           table: 'alertas_tributarios',
-        },
+          ...(empresaId ? { filter: `empresa_id=eq.${empresaId}` } : {}),
+        } as any,
         () => {
           queryClient.invalidateQueries({ queryKey: ['alertas-tributarios'] });
         }
@@ -134,7 +139,7 @@ export function useAlertasTributarios(empresaId?: string) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [queryClient]);
+  }, [queryClient, empresaId]);
 
   // Criar alerta
   const criarAlerta = useMutation({

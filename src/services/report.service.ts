@@ -193,12 +193,14 @@ export const reportService = {
   async getByCliente(filters: ReportFilters = {}): Promise<ClienteReport[]> {
     const { startDate, endDate } = filters;
     const today = new Date().toISOString().split('T')[0];
-    const { data: clientes } = await supabase.from('clientes').select('id, razao_social');
+    const { data: clientes, error: clientesError } = await supabase.from('clientes').select('id, razao_social');
+    if (clientesError) throw new Error(clientesError.message);
 
     let query = supabase.from('contas_receber').select('*');
     if (startDate) query = query.gte('data_vencimento', startDate);
     if (endDate) query = query.lte('data_vencimento', endDate);
-    const { data: contas } = await query;
+    const { data: contas, error: contasError } = await query;
+    if (contasError) throw new Error(contasError.message);
 
     return (clientes || []).map(cliente => {
       const contasCliente = (contas || []).filter(c => c.cliente_id === cliente.id);
@@ -215,12 +217,14 @@ export const reportService = {
   async getByFornecedor(filters: ReportFilters = {}): Promise<FornecedorReport[]> {
     const { startDate, endDate } = filters;
     const today = new Date().toISOString().split('T')[0];
-    const { data: fornecedores } = await supabase.from('fornecedores').select('id, razao_social, nome_fantasia');
+    const { data: fornecedores, error: fornecedoresError } = await supabase.from('fornecedores').select('id, razao_social, nome_fantasia');
+    if (fornecedoresError) throw new Error(fornecedoresError.message);
 
     let query = supabase.from('contas_pagar').select('*');
     if (startDate) query = query.gte('data_vencimento', startDate);
     if (endDate) query = query.lte('data_vencimento', endDate);
-    const { data: contas } = await query;
+    const { data: contas, error: contasError } = await query;
+    if (contasError) throw new Error(contasError.message);
 
     return (fornecedores || []).map(fornecedor => {
       const contasFornecedor = (contas || []).filter(c => c.fornecedor_id === fornecedor.id);
