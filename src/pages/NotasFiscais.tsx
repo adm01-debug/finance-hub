@@ -1273,7 +1273,7 @@ export default function NotasFiscais() {
                   <div>
                     <p className="text-sm text-muted-foreground">Taxa de Autorização</p>
                     <p className="text-2xl font-bold">
-                      {((notas.filter(n => n.status === 'autorizada').length / notas.length) * 100).toFixed(1)}%
+                      {notas.length > 0 ? ((notas.filter(n => n.status === 'autorizada').length / notas.length) * 100).toFixed(1) : '0.0'}%
                     </p>
                   </div>
                 </div>
