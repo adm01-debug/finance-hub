@@ -110,7 +110,7 @@ export function useAlertasPreditivos() {
       }, {} as Record<string, number>);
 
       Object.entries(porCliente).forEach(([cliente, valor]) => {
-        const percentual = (valor / totalReceber) * 100;
+        const percentual = totalReceber > 0 ? (valor / totalReceber) * 100 : 0;
         if (percentual > 30) {
           novosAlertas.push({
             id: `concentracao-${cliente}`,

@@ -172,7 +172,7 @@ export function ExportacaoSPED() {
       const validacao = validarArquivoSPED(conteudo);
       
       if (!validacao.valido) {
-        toast.warning('Arquivo gerado com avisos', {
+        toast.info('Arquivo gerado com avisos', {
           description: validacao.erros.join('; '),
         });
       }

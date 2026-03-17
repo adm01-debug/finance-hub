@@ -84,7 +84,7 @@ export interface ResultadoCalculo {
  * Determina a fase de transição baseada no ano
  */
 export function determinarFaseTransicao(ano: number): FaseTransicao {
-  if (ano <= 2025) return '2026_teste';
+  if (ano <= 2025) return '2026_teste'; // Pre-reform: no new taxes
   if (ano === 2026) return '2026_teste';
   if (ano === 2027) return '2027_cbs_plena';
   if (ano === 2028) return '2028_cbs_plena';
@@ -175,7 +175,7 @@ export function verificarIsencao(dados: DadosOperacao): { isento: boolean; motiv
   
   // Verificar CFOP de exportação
   const cfopsExportacao = ['7101', '7102', '7127', '7501', '7949'];
-  if (cfopsExportacao.some(c => dados.cfop.startsWith(c.substring(0, 1)) && dados.cfop.length === 4 && dados.cfop.startsWith('7'))) {
+  if (dados.cfop.length === 4 && cfopsExportacao.includes(dados.cfop)) {
     return { isento: true, motivo: 'Exportação identificada pelo CFOP' };
   }
   

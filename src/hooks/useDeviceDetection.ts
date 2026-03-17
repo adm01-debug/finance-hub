@@ -160,7 +160,7 @@ export function useDeviceDetection() {
       }
       
       // Show toast notification
-      toast.warning('Novo dispositivo detectado', {
+      toast.info('Novo dispositivo detectado', {
         description: `Login de ${deviceInfo.browser} no ${deviceInfo.os}. Se não foi você, altere sua senha imediatamente.`,
         duration: 10000,
         action: {

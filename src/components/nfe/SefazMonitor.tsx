@@ -141,7 +141,7 @@ export function SefazMonitor() {
 
     if (showAlerts) {
       if (type === 'error') toast.error(message);
-      else if (type === 'warning') toast.warning(message);
+      else if (type === 'warning') toast.info(message);
       else if (type === 'success') toast.success(message);
     }
   }, [showAlerts]);

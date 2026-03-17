@@ -54,7 +54,7 @@ export const formatNumber = (value: number): string => {
 };
 
 export const getDaysUntil = (date: Date | string): number => {
-  const d = typeof date === 'string' ? new Date(date) : date;
+  const d = new Date(typeof date === 'string' ? date : date.getTime());
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   d.setHours(0, 0, 0, 0);
@@ -68,7 +68,7 @@ export const getDaysOverdue = (date: Date | string): number => {
 };
 
 export const calculateOverdueDays = (date: Date | string): number => {
-  const d = typeof date === 'string' ? new Date(date) : new Date(date);
+  const d = new Date(typeof date === 'string' ? date : date.getTime());
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   d.setHours(0, 0, 0, 0);
@@ -160,7 +160,7 @@ export const formatCEP = (cep: string): string => {
  * Formata bytes para exibição legível
  */
 export const formatBytes = (bytes: number, decimals = 2): string => {
-  if (bytes === 0) return '0 Bytes';
+  if (bytes <= 0) return '0 Bytes';
   const k = 1024;
   const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));

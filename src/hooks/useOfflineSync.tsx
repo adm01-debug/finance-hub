@@ -70,7 +70,7 @@ export function useOfflineSync() {
 
     const handleOffline = () => {
       setState(prev => ({ ...prev, isOnline: false }));
-      toast.warning('Você está offline', {
+      toast.info('Você está offline', {
         description: 'As alterações serão salvas localmente.',
       });
     };

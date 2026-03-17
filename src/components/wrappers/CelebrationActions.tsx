@@ -89,7 +89,7 @@ export function useCelebrations() {
     sounds.playWarning();
     haptic('warning');
     if (message) {
-      toast.warning(message);
+      toast.info(message);
     }
   }, [sounds]);
 

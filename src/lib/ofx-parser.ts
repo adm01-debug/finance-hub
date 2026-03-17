@@ -196,7 +196,7 @@ export function parseCSV(content: string, fileName: string): ResultadoImportacao
         const descricao = cols[descricaoIdx] || cols[2] || 'Transação sem descrição';
         
         transacoes.push({
-          id: `csv-${i}-${Date.now()}`,
+          id: `csv-${i}`,
           tipo,
           data,
           valor,

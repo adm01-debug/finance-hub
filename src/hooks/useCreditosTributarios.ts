@@ -124,7 +124,7 @@ export function useCreditosTributarios(empresaId?: string) {
         resumo[key].total += Number(c.valor_credito) || 0;
         resumo[key].utilizado += Number(c.valor_utilizado) || 0;
         if (c.status === 'disponivel') {
-          resumo[key].disponivel += Number(c.saldo_disponivel) || Number(c.valor_credito) - Number(c.valor_utilizado) || 0;
+          resumo[key].disponivel += Number(c.saldo_disponivel) || (Number(c.valor_credito) - Number(c.valor_utilizado)) || 0;
         }
       });
 

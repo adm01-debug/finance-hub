@@ -79,7 +79,8 @@ export function gerarProjecaoCenario(
 
   return dadosBase.map((dia) => {
     // Aplicar multiplicadores e simular atrasos
-    const receitasAjustadas = dia.receitas * config.multiplicadorReceitas * (1 - config.probabilidadeAtraso * Math.random());
+    const atrasou = Math.random() < config.probabilidadeAtraso;
+    const receitasAjustadas = atrasou ? 0 : dia.receitas * config.multiplicadorReceitas;
     const despesasAjustadas = dia.despesas * config.multiplicadorDespesas;
     
     saldoAcumulado = saldoAcumulado + receitasAjustadas - despesasAjustadas;

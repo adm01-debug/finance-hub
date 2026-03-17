@@ -38,6 +38,7 @@ export interface SplitPaymentTransacao {
 const ALIQUOTAS_SPLIT = {
   2026: { cbs: 0.009, ibs: 0.001 },
   2027: { cbs: 0.009, ibs: 0.001 },
+  2028: { cbs: 0.009, ibs: 0.001 },
   2029: { cbs: 0.0352, ibs: 0.0712 },
   2030: { cbs: 0.044, ibs: 0.089 },
   2031: { cbs: 0.0528, ibs: 0.1068 },

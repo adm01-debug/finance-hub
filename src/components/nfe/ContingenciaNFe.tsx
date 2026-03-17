@@ -127,7 +127,7 @@ export function ContingenciaNFe() {
         });
         
         if (autoConfig.notifyOnActivation) {
-          toast.warning(`Contingência automática ativada: ${result.rule.name}`);
+          toast.info(`Contingência automática ativada: ${result.rule.name}`);
         }
       } else if (result.action === 'deactivated') {
         registrarEvento({
@@ -157,7 +157,7 @@ export function ContingenciaNFe() {
       if (newHealth.online) {
         toast.success('SEFAZ está online e operacional');
       } else {
-        toast.warning('SEFAZ está indisponível');
+        toast.info('SEFAZ está indisponível');
       }
     } catch (error: unknown) {
       toast.error('Erro ao verificar status da SEFAZ');

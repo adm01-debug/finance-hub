@@ -101,9 +101,9 @@ export function useSecurityAlerts() {
           setUnresolvedCount(prev => prev + 1);
           
           // Show toast notification for new alerts
-          const toastType = newAlert.severity === 'critical' || newAlert.severity === 'high' 
-            ? toast.error 
-            : toast.warning;
+          const toastType = newAlert.severity === 'critical' || newAlert.severity === 'high'
+            ? toast.error
+            : toast.info;
           
           toastType(`🔒 Alerta de Segurança: ${newAlert.title}`, {
             description: newAlert.description || undefined,

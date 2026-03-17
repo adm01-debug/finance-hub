@@ -139,7 +139,11 @@ function calcularSimilaridadeValor(
   tolerancia: number
 ): { score: number; tipo: 'exato' | 'proximo' | 'diferente' } {
   const diff = Math.abs(valor1 - valor2);
-  const percentDiff = (diff / Math.max(Math.abs(valor1), Math.abs(valor2))) * 100;
+  const maxAbs = Math.max(Math.abs(valor1), Math.abs(valor2));
+  if (maxAbs === 0) {
+    return { score: 1, tipo: 'exato' };
+  }
+  const percentDiff = (diff / maxAbs) * 100;
   
   if (diff < 0.01) { // Essentially equal (floating point tolerance)
     return { score: 1, tipo: 'exato' };

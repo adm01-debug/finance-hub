@@ -108,7 +108,7 @@ export function useAlertasTributarios(empresaId?: string) {
           
           // Notificar usuário
           const config = ALERTA_CONFIG[novoAlerta.tipo];
-          toast[novoAlerta.prioridade === 'critica' ? 'error' : 'warning'](
+          toast[novoAlerta.prioridade === 'critica' ? 'error' : 'info'](
             novoAlerta.titulo,
             { description: novoAlerta.mensagem }
           );
@@ -212,7 +212,7 @@ export function useAlertasTributarios(empresaId?: string) {
           empresa_id: empresaId,
           tipo: 'vencimento_darf',
           titulo: `DARF ${darf.codigo_receita} vence em ${diasParaVencer} dias`,
-          mensagem: `DARF de ${darf.descricao_receita} no valor de R$ ${darf.valor_total.toFixed(2)} vence em ${format(parseISO(darf.data_vencimento), 'dd/MM/yyyy')}`,
+          mensagem: `DARF de ${darf.descricao_receita} no valor de R$ ${(darf.valor_total ?? 0).toFixed(2)} vence em ${format(parseISO(darf.data_vencimento), 'dd/MM/yyyy')}`,
           prioridade: diasParaVencer === 0 ? 'critica' : diasParaVencer === 1 ? 'alta' : 'media',
           data_vencimento: darf.data_vencimento,
           entidade_tipo: 'darf',
@@ -261,7 +261,7 @@ export function useAlertasTributarios(empresaId?: string) {
           empresa_id: empresaId,
           tipo: 'prazo_credito',
           titulo: `Crédito ${credito.tipo_tributo} expira em ${diasParaExpirar} dias`,
-          mensagem: `Crédito tributário de R$ ${credito.saldo_disponivel?.toFixed(2)} está próximo de expirar. Utilize antes do vencimento.`,
+          mensagem: `Crédito tributário de R$ ${(credito.saldo_disponivel ?? 0).toFixed(2)} está próximo de expirar. Utilize antes do vencimento.`,
           prioridade: diasParaExpirar <= 30 ? 'alta' : 'media',
           entidade_tipo: 'credito',
           entidade_id: credito.id,

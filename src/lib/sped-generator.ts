@@ -99,8 +99,10 @@ export function gerarEFD_IBS_CBS(
 ): string {
   const linhas: string[] = [];
   const [ano, mes] = competencia.split('-');
-  const dataInicio = `01${mes}${ano}`;
-  const dataFim = format(new Date(Number(ano), Number(mes), 0), 'ddMMyyyy');
+  const mesNum = Number(mes);
+  const anoNum = Number(ano);
+  const dataInicio = formatarDataSPED(new Date(anoNum, mesNum - 1, 1));
+  const dataFim = formatarDataSPED(new Date(anoNum, mesNum, 0));
 
   // BLOCO 0 - Abertura, Identificação e Referências
   // Registro 0000 - Abertura do Arquivo Digital
@@ -379,8 +381,10 @@ export function gerarEFD_Contribuicoes(
 ): string {
   const linhas: string[] = [];
   const [ano, mes] = competencia.split('-');
-  const dataInicio = `01${mes}${ano}`;
-  const dataFim = format(new Date(Number(ano), Number(mes), 0), 'ddMMyyyy');
+  const mesNum = Number(mes);
+  const anoNum = Number(ano);
+  const dataInicio = formatarDataSPED(new Date(anoNum, mesNum - 1, 1));
+  const dataFim = formatarDataSPED(new Date(anoNum, mesNum, 0));
 
   // Registro 0000 - Abertura
   linhas.push(gerarLinhaSPED({
