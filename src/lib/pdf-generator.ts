@@ -1,5 +1,16 @@
 import { formatCurrency, formatDate } from './formatters';
 
+// Escape HTML entities to prevent XSS
+function escapeHtml(value: unknown): string {
+  const str = String(value ?? '');
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 export interface BoletoData {
   numero: string;
   linha_digitavel: string;
@@ -30,7 +41,7 @@ export function generateBoletoPDF(boleto: BoletoData): void {
     <!DOCTYPE html>
     <html>
     <head>
-      <title>Boleto ${boleto.numero}</title>
+      <title>Boleto ${escapeHtml(boleto.numero)}</title>
       <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
@@ -163,9 +174,9 @@ export function generateBoletoPDF(boleto: BoletoData): void {
           <div class="canhoto-title">RECIBO DO PAGADOR</div>
           <div class="recibo">
             <div class="recibo-info">
-              <strong>Beneficiário:</strong> ${boleto.cedente_nome}<br>
-              <strong>Pagador:</strong> ${boleto.sacado_nome}<br>
-              <strong>Nosso Número:</strong> ${boleto.numero}
+              <strong>Beneficiário:</strong> ${escapeHtml(boleto.cedente_nome)}<br>
+              <strong>Pagador:</strong> ${escapeHtml(boleto.sacado_nome)}<br>
+              <strong>Nosso Número:</strong> ${escapeHtml(boleto.numero)}
             </div>
             <div class="recibo-info" style="text-align: right;">
               <strong>Vencimento:</strong> ${formatDate(boleto.vencimento)}<br>
@@ -177,9 +188,9 @@ export function generateBoletoPDF(boleto: BoletoData): void {
 
         <!-- Header -->
         <div class="header">
-          <div class="banco-logo">${boleto.banco}</div>
+          <div class="banco-logo">${escapeHtml(boleto.banco)}</div>
           <div class="banco-codigo">${getBancoCode(boleto.banco)}</div>
-          <div class="linha-digitavel">${boleto.linha_digitavel}</div>
+          <div class="linha-digitavel">${escapeHtml(boleto.linha_digitavel)}</div>
         </div>
 
         <!-- Info Rows -->
@@ -197,15 +208,15 @@ export function generateBoletoPDF(boleto: BoletoData): void {
         <div class="info-row">
           <div class="info-cell cell-50">
             <label>Beneficiário</label>
-            <span>${boleto.cedente_nome}</span>
+            <span>${escapeHtml(boleto.cedente_nome)}</span>
           </div>
           <div class="info-cell cell-25">
             <label>Agência/Código Beneficiário</label>
-            <span>${boleto.agencia} / ${boleto.conta}</span>
+            <span>${escapeHtml(boleto.agencia)} / ${escapeHtml(boleto.conta)}</span>
           </div>
           <div class="info-cell cell-25">
             <label>Nosso Número</label>
-            <span>${boleto.numero}</span>
+            <span>${escapeHtml(boleto.numero)}</span>
           </div>
         </div>
 
@@ -216,7 +227,7 @@ export function generateBoletoPDF(boleto: BoletoData): void {
           </div>
           <div class="info-cell cell-25">
             <label>Número do Documento</label>
-            <span>${boleto.numero}</span>
+            <span>${escapeHtml(boleto.numero)}</span>
           </div>
           <div class="info-cell cell-25">
             <label>Espécie Doc.</label>
@@ -231,7 +242,7 @@ export function generateBoletoPDF(boleto: BoletoData): void {
         <div class="info-row">
           <div class="info-cell cell-50">
             <label>Instruções</label>
-            <span>${boleto.descricao || 'Não receber após o vencimento.'}</span>
+            <span>${escapeHtml(boleto.descricao || 'Não receber após o vencimento.')}</span>
           </div>
           <div class="info-cell cell-25">
             <label>(-) Desconto</label>
@@ -246,7 +257,7 @@ export function generateBoletoPDF(boleto: BoletoData): void {
         <div class="info-row">
           <div class="info-cell cell-50">
             <label>Pagador</label>
-            <span>${boleto.sacado_nome} - ${boleto.sacado_cpf_cnpj || ''}</span>
+            <span>${escapeHtml(boleto.sacado_nome)} - ${escapeHtml(boleto.sacado_cpf_cnpj || '')}</span>
           </div>
           <div class="info-cell cell-50">
             <label>(=) Valor Cobrado</label>
@@ -259,7 +270,7 @@ export function generateBoletoPDF(boleto: BoletoData): void {
           <div class="barcode">
             ${barcodeHtml}
           </div>
-          <div class="barcode-text">${boleto.codigo_barras}</div>
+          <div class="barcode-text">${escapeHtml(boleto.codigo_barras)}</div>
         </div>
       </div>
 

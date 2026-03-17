@@ -1,6 +1,7 @@
 // Formatadores de valores monetários e datas
 
 export const formatCurrency = (value: number): string => {
+  if (value == null || Number.isNaN(value)) return 'R$ 0,00';
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
     currency: 'BRL',
@@ -8,6 +9,7 @@ export const formatCurrency = (value: number): string => {
 };
 
 export const formatCurrencyCompact = (value: number): string => {
+  if (value == null || Number.isNaN(value)) return 'R$ 0';
   if (value >= 1000000) {
     return `R$ ${(value / 1000000).toFixed(1)}M`;
   }
@@ -18,7 +20,9 @@ export const formatCurrencyCompact = (value: number): string => {
 };
 
 export const formatDate = (date: Date | string): string => {
+  if (!date) return '-';
   const d = typeof date === 'string' ? new Date(date) : date;
+  if (isNaN(d.getTime())) return '-';
   return new Intl.DateTimeFormat('pt-BR', {
     day: '2-digit',
     month: '2-digit',
@@ -27,7 +31,9 @@ export const formatDate = (date: Date | string): string => {
 };
 
 export const formatDateShort = (date: Date | string): string => {
+  if (!date) return '-';
   const d = typeof date === 'string' ? new Date(date) : date;
+  if (isNaN(d.getTime())) return '-';
   return new Intl.DateTimeFormat('pt-BR', {
     day: '2-digit',
     month: 'short',
@@ -35,7 +41,9 @@ export const formatDateShort = (date: Date | string): string => {
 };
 
 export const formatDateTime = (date: Date | string): string => {
+  if (!date) return '-';
   const d = typeof date === 'string' ? new Date(date) : date;
+  if (isNaN(d.getTime())) return '-';
   return new Intl.DateTimeFormat('pt-BR', {
     day: '2-digit',
     month: '2-digit',
@@ -46,6 +54,7 @@ export const formatDateTime = (date: Date | string): string => {
 };
 
 export const formatPercentage = (value: number): string => {
+  if (value == null || Number.isNaN(value)) return '0.0%';
   return `${value >= 0 ? '+' : ''}${value.toFixed(1)}%`;
 };
 
@@ -77,7 +86,9 @@ export const calculateOverdueDays = (date: Date | string): number => {
 };
 
 export const getRelativeTime = (date: Date | string): string => {
+  if (!date) return '-';
   const d = typeof date === 'string' ? new Date(date) : date;
+  if (isNaN(d.getTime())) return '-';
   const now = new Date();
   const diff = now.getTime() - d.getTime();
   const minutes = Math.floor(diff / 60000);
@@ -93,6 +104,7 @@ export const getRelativeTime = (date: Date | string): string => {
 };
 
 export const getCNPJFormatted = (cnpj: string): string => {
+  if (!cnpj) return '';
   const numbers = cnpj.replace(/\D/g, '');
   return numbers.replace(
     /^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,
@@ -130,6 +142,7 @@ export const getEtapaCobrancaLabel = (etapa: string): string => {
  * Formata número de telefone brasileiro
  */
 export const formatPhone = (phone: string): string => {
+  if (!phone) return '';
   const numbers = phone.replace(/\D/g, '');
   if (numbers.length === 11) {
     return numbers.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3');
@@ -144,6 +157,7 @@ export const formatPhone = (phone: string): string => {
  * Formata CPF
  */
 export const formatCPF = (cpf: string): string => {
+  if (!cpf) return '';
   const numbers = cpf.replace(/\D/g, '');
   return numbers.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, '$1.$2.$3-$4');
 };
@@ -152,6 +166,7 @@ export const formatCPF = (cpf: string): string => {
  * Formata CEP
  */
 export const formatCEP = (cep: string): string => {
+  if (!cep) return '';
   const numbers = cep.replace(/\D/g, '');
   return numbers.replace(/^(\d{5})(\d{3})$/, '$1-$2');
 };
@@ -171,6 +186,7 @@ export const formatBytes = (bytes: number, decimals = 2): string => {
  * Trunca texto com ellipsis
  */
 export const truncate = (text: string, maxLength: number): string => {
+  if (!text) return '';
   if (text.length <= maxLength) return text;
   return `${text.slice(0, maxLength - 3)}...`;
 };
@@ -242,6 +258,7 @@ export const isPast = (date: Date | string): boolean => {
  * Formata nome para exibição (primeiro + último nome)
  */
 export const formatDisplayName = (fullName: string): string => {
+  if (!fullName) return '';
   const parts = fullName.trim().split(/\s+/);
   if (parts.length === 1) return parts[0];
   return `${parts[0]} ${parts[parts.length - 1]}`;
@@ -251,6 +268,7 @@ export const formatDisplayName = (fullName: string): string => {
  * Gera iniciais a partir de nome
  */
 export const getInitials = (name: string): string => {
+  if (!name) return '';
   const parts = name.trim().split(/\s+/);
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
   return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();

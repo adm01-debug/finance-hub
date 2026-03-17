@@ -53,6 +53,17 @@ export function exportToCSV<T extends object>(
   URL.revokeObjectURL(link.href);
 }
 
+// Escape HTML entities to prevent XSS in PDF export
+function escapeHtml(value: unknown): string {
+  const str = String(value ?? '');
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 // Exportar para PDF (usando print do browser)
 export function exportToPDF<T extends object>(
   data: T[],
@@ -65,7 +76,7 @@ export function exportToPDF<T extends object>(
     alert('Permita pop-ups para exportar PDF');
     return;
   }
-  
+
   const tableRows = data.map(row => {
     const cells = columns.map(col => {
       const keys = col.key.toString().split('.');
@@ -73,27 +84,28 @@ export function exportToPDF<T extends object>(
       for (const k of keys) {
         value = (value as Record<string, unknown>)?.[k];
       }
-      
+
       if (col.formatter) {
         value = col.formatter(value, row);
       } else if (value === null || value === undefined) {
         value = '-';
       }
-      
-      return `<td style="padding: 8px 12px; border-bottom: 1px solid #e5e7eb; text-align: left;">${value}</td>`;
+
+      return `<td style="padding: 8px 12px; border-bottom: 1px solid #e5e7eb; text-align: left;">${escapeHtml(value)}</td>`;
     }).join('');
     return `<tr>${cells}</tr>`;
   }).join('');
-  
-  const tableHeaders = columns.map(col => 
-    `<th style="padding: 10px 12px; border-bottom: 2px solid #374151; text-align: left; font-weight: 600; background: #f9fafb;">${col.header}</th>`
+
+  const tableHeaders = columns.map(col =>
+    `<th style="padding: 10px 12px; border-bottom: 2px solid #374151; text-align: left; font-weight: 600; background: #f9fafb;">${escapeHtml(col.header)}</th>`
   ).join('');
-  
+
+  const escapedTitle = escapeHtml(title);
   const html = `
     <!DOCTYPE html>
     <html>
     <head>
-      <title>${title}</title>
+      <title>${escapedTitle}</title>
       <style>
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 20px; }
         h1 { font-size: 24px; margin-bottom: 8px; color: #111827; }
@@ -107,7 +119,7 @@ export function exportToPDF<T extends object>(
       </style>
     </head>
     <body>
-      <h1>${title}</h1>
+      <h1>${escapedTitle}</h1>
       <p class="date">Gerado em ${formatDate(new Date())} às ${new Date().toLocaleTimeString('pt-BR')}</p>
       <table>
         <thead><tr>${tableHeaders}</tr></thead>
