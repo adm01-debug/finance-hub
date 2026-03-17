@@ -93,7 +93,7 @@ export function ProactiveSuggestions({ onSuggestionClick }: ProactiveSuggestions
           id: 'alerta-saldo-baixo',
           type: 'alerta',
           title: 'Saldo Projetado Baixo',
-          description: `O saldo projetado é ${formatCurrency(saldoProjetado)}, apenas ${((saldoProjetado / saldoAtual) * 100).toFixed(0)}% do saldo atual.`,
+          description: `O saldo projetado é ${formatCurrency(saldoProjetado)}, apenas ${saldoAtual > 0 ? ((saldoProjetado / saldoAtual) * 100).toFixed(0) : 0}% do saldo atual.`,
           priority: 'alta',
         });
       }

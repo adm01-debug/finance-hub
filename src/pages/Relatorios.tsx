@@ -608,7 +608,7 @@ export default function Relatorios() {
                 <TableBody>
                   {(comparativoPeriodos || []).map((item) => {
                     const variacao = item.atual - item.anterior;
-                    const percentual = ((variacao) / item.anterior) * 100;
+                    const percentual = item.anterior !== 0 ? ((variacao) / item.anterior) * 100 : 0;
                     return (
                       <TableRow key={item.mes}>
                         <TableCell className="font-medium">{item.mes}</TableCell>

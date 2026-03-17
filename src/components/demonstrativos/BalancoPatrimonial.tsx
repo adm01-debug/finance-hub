@@ -156,9 +156,9 @@ export const BalancoPatrimonial = ({ periodo, mes, ano, empresaId }: BalancoPatr
             <div className="mt-4 space-y-2">
               <div className="flex justify-between text-xs">
                 <span>Circulante</span>
-                <span>{((balanco.ativoCirculante / balanco.totalAtivo) * 100).toFixed(0)}%</span>
+                <span>{balanco.totalAtivo > 0 ? ((balanco.ativoCirculante / balanco.totalAtivo) * 100).toFixed(0) : 0}%</span>
               </div>
-              <Progress value={(balanco.ativoCirculante / balanco.totalAtivo) * 100} className="h-2" />
+              <Progress value={balanco.totalAtivo > 0 ? (balanco.ativoCirculante / balanco.totalAtivo) * 100 : 0} className="h-2" />
             </div>
           </CardContent>
         </Card>
@@ -183,9 +183,9 @@ export const BalancoPatrimonial = ({ periodo, mes, ano, empresaId }: BalancoPatr
             <div className="mt-4 space-y-2">
               <div className="flex justify-between text-xs">
                 <span>Patrimônio Líquido</span>
-                <span>{((balanco.patrimonioLiquido / balanco.totalPassivo) * 100).toFixed(0)}%</span>
+                <span>{balanco.totalPassivo > 0 ? ((balanco.patrimonioLiquido / balanco.totalPassivo) * 100).toFixed(0) : 0}%</span>
               </div>
-              <Progress value={(balanco.patrimonioLiquido / balanco.totalPassivo) * 100} className="h-2" />
+              <Progress value={balanco.totalPassivo > 0 ? (balanco.patrimonioLiquido / balanco.totalPassivo) * 100 : 0} className="h-2" />
             </div>
           </CardContent>
         </Card>
