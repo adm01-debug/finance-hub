@@ -61,8 +61,9 @@ export function useContasReceberLogic() {
   const { data: centrosCusto = [] } = useCentrosCusto();
 
   const contas = paginatedResult?.data || [];
-  const totalCount = paginatedResult?.totalCount || 0;
-  const totalPages = paginatedResult?.totalPages || 1;
+  const hasAdvancedFilters = Object.values(advancedFilters).some(v => v !== undefined && v !== '');
+  const serverTotalCount = paginatedResult?.totalCount || 0;
+  const serverTotalPages = paginatedResult?.totalPages || 1;
 
   // Handlers
   const handleSearchChange = useCallback((value: string) => {
@@ -217,8 +218,8 @@ export function useContasReceberLogic() {
     contas,
     sortedContas,
     centrosCusto,
-    totalCount,
-    totalPages,
+    totalCount: hasAdvancedFilters ? sortedContas.length : serverTotalCount,
+    totalPages: hasAdvancedFilters ? 1 : serverTotalPages,
     kpis,
     sortKey,
     sortDirection,

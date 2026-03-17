@@ -255,9 +255,13 @@ export const formatDateForInput = (date: Date | string | null): string => {
  * Checa se uma data é hoje
  */
 export const isToday = (date: Date | string): boolean => {
-  const d = typeof date === 'string' ? new Date(date) : date;
+  if (typeof date === 'string') {
+    return date.slice(0, 10) === new Date().toISOString().split('T')[0];
+  }
   const today = new Date();
-  return d.toDateString() === today.toDateString();
+  return date.getFullYear() === today.getFullYear() &&
+    date.getMonth() === today.getMonth() &&
+    date.getDate() === today.getDate();
 };
 
 /**

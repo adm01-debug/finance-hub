@@ -54,8 +54,9 @@ export function useContasPagarLogic() {
   const criarSolicitacaoMutation = useCriarSolicitacaoAprovacao();
 
   const contas = paginatedResult?.data || [];
-  const totalCount = paginatedResult?.totalCount || 0;
-  const totalPages = paginatedResult?.totalPages || 1;
+  const hasAdvancedFilters = Object.values(advancedFilters).some(v => v !== undefined && v !== '');
+  const serverTotalCount = paginatedResult?.totalCount || 0;
+  const serverTotalPages = paginatedResult?.totalPages || 1;
 
   // Fetch approval requests
   const { data: solicitacoesAprovacao = [] } = useQuery({
@@ -104,9 +105,10 @@ export function useContasPagarLogic() {
   const totalPagar = allContas.reduce((sum, c) => c.status !== 'pago' && c.status !== 'cancelado' ? sum + c.valor - (c.valor_pago || 0) : sum, 0);
   const totalVencido = allContas.filter(c => c.status === 'vencido').reduce((sum, c) => sum + c.valor - (c.valor_pago || 0), 0);
   const totalPagoMes = allContas.filter(c => c.status === 'pago').reduce((sum, c) => sum + (c.valor_pago || 0), 0);
+  const hojeStr = new Date().toISOString().split('T')[0];
   const venceHoje = allContas.filter(c => {
     if (!c.data_vencimento || c.status !== 'pendente') return false;
-    return new Date(c.data_vencimento).toDateString() === new Date().toDateString();
+    return c.data_vencimento.slice(0, 10) === hojeStr;
   }).length;
 
   const requerAprovacao = (valor: number) => {
@@ -360,8 +362,8 @@ export function useContasPagarLogic() {
     // Data
     sortedContas,
     centrosCusto,
-    totalCount,
-    totalPages,
+    totalCount: hasAdvancedFilters ? sortedContas.length : serverTotalCount,
+    totalPages: hasAdvancedFilters ? 1 : serverTotalPages,
     isLoading,
     profilesMap,
     historicoAprovacaoPorConta,

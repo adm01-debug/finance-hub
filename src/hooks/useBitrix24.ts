@@ -306,9 +306,9 @@ export function useBitrix24() {
     clientesImportados: syncedClients?.length || 0,
     ultimaSync: syncLogs?.[0]?.finalizado_em || syncLogs?.[0]?.iniciado_em,
     errosHoje: syncLogs?.filter(
-      (log) => 
-        log.status === 'erro' && 
-        new Date(log.created_at).toDateString() === new Date().toDateString()
+      (log) =>
+        log.status === 'erro' &&
+        log.created_at?.slice(0, 10) === new Date().toISOString().split('T')[0]
     ).length || 0,
   };
 

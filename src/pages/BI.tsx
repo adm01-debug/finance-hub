@@ -108,12 +108,16 @@ export default function BI() {
     const totalVencidasReceber = vencidasReceber.reduce((acc, c) => acc + (c.valor || 0), 0);
     const inadimplencia = totalReceber > 0 ? (totalVencidasReceber / totalReceber) * 100 : 0;
 
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
     const receitaMes = filteredReceber
-      .filter(c => c.status === 'pago' && c.data_recebimento && new Date(c.data_recebimento).getMonth() === new Date().getMonth())
+      .filter(c => c.status === 'pago' && c.data_recebimento && (() => { const d = new Date(c.data_recebimento); return d.getMonth() === currentMonth && d.getFullYear() === currentYear; })())
       .reduce((acc, c) => acc + (c.valor_recebido || c.valor), 0);
 
     const despesaMes = filteredPagar
-      .filter(c => c.status === 'pago' && c.data_pagamento && new Date(c.data_pagamento).getMonth() === new Date().getMonth())
+      .filter(c => c.status === 'pago' && c.data_pagamento && (() => { const d = new Date(c.data_pagamento); return d.getMonth() === currentMonth && d.getFullYear() === currentYear; })())
       .reduce((acc, c) => acc + (c.valor_pago || c.valor), 0);
 
     const lucroMes = receitaMes - despesaMes;
@@ -121,8 +125,10 @@ export default function BI() {
 
     // Compare with previous month
     const lastMonth = subMonths(new Date(), 1);
+    const lastMonthNum = lastMonth.getMonth();
+    const lastMonthYear = lastMonth.getFullYear();
     const receitaMesAnterior = filteredReceber
-      .filter(c => c.status === 'pago' && c.data_recebimento && new Date(c.data_recebimento).getMonth() === lastMonth.getMonth())
+      .filter(c => c.status === 'pago' && c.data_recebimento && (() => { const d = new Date(c.data_recebimento); return d.getMonth() === lastMonthNum && d.getFullYear() === lastMonthYear; })())
       .reduce((acc, c) => acc + (c.valor_recebido || c.valor), 0);
 
     const variacaoReceita = receitaMesAnterior > 0 ? ((receitaMes - receitaMesAnterior) / receitaMesAnterior) * 100 : 0;
