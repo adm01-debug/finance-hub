@@ -49,7 +49,7 @@ export function useDashboardMetrics(filters: DashboardFilters) {
   const hoje = new Date();
   hoje.setHours(0, 0, 0, 0);
 
-  const saldoTotal = contasBancariasFiltradas.reduce((sum, c) => sum + c.saldo_atual, 0);
+  const saldoTotal = contasBancariasFiltradas.reduce((sum, c) => sum + (c.saldo_atual || 0), 0);
   
   const mesAtual = hoje.getMonth();
   const anoAtual = hoje.getFullYear();
