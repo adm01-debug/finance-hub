@@ -100,7 +100,8 @@ export function SimuladorAntecipacao() {
     if (selecionados.length === 0) return null;
 
     const valorBruto = selecionados.reduce((sum, r) => sum + r.valor, 0);
-    const hoje = new Date(dataAntecipacao);
+    const hoje = dataAntecipacao ? new Date(dataAntecipacao) : new Date();
+    if (isNaN(hoje.getTime())) return null;
     
     let taxaTotal = 0;
     let diasPonderados = 0;

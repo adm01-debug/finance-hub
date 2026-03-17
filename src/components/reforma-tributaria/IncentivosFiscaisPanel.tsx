@@ -164,7 +164,7 @@ export function IncentivosFiscaisPanel({ empresaId }: Props) {
                   <Input
                     type="number"
                     value={formData.ano_inicio}
-                    onChange={e => setFormData(prev => ({ ...prev, ano_inicio: parseInt(e.target.value) }))}
+                    onChange={e => setFormData(prev => ({ ...prev, ano_inicio: parseInt(e.target.value) || new Date().getFullYear() }))}
                   />
                 </div>
                 <div className="space-y-2">

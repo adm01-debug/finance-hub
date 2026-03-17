@@ -66,6 +66,7 @@ async function getNextBoletoNumber(): Promise<string> {
 
   if (data && data.length > 0) {
     const lastNumber = parseInt(data[0].numero, 10);
+    if (isNaN(lastNumber)) return '00001';
     return (lastNumber + 1).toString().padStart(5, '0');
   }
   
