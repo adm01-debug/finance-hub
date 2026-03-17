@@ -97,7 +97,11 @@ export default function ResetPassword() {
 
       // Sign out and redirect to login after 3 seconds
       setTimeout(async () => {
-        await supabase.auth.signOut();
+        try {
+          await supabase.auth.signOut();
+        } catch (err) {
+          logger.error('Error signing out after password reset:', err);
+        }
         navigate('/auth', { replace: true });
       }, 3000);
     } catch (error) {

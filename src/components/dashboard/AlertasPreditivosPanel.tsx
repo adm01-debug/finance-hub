@@ -65,7 +65,7 @@ export function AlertasPreditivosPanel({
         historicoInadimplencia,
       });
     }
-  }, [saldoAtual, lastAnalysis]);
+  }, [saldoAtual, lastAnalysis, analisarFluxoCaixa, receitasPrevistas, despesasPrevistas, historicoInadimplencia]);
 
   const handleReanalisar = () => {
     analisarFluxoCaixa({

@@ -53,7 +53,7 @@ export function usePrefetchCriticalData() {
         staleTime: STALE_TIMES.static,
         gcTime: GC_TIMES.static,
       }),
-    ]);
+    ]).catch(() => { /* prefetch failures are non-critical */ });
   }, [queryClient]);
 }
 

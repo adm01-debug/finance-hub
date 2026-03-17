@@ -89,7 +89,7 @@ export function useOfflineSync() {
     if (state.isOnline && state.pendingMutations.length > 0 && !state.isSyncing) {
       syncPendingMutations();
     }
-  }, [state.isOnline, state.pendingMutations.length]);
+  }, [state.isOnline, state.pendingMutations.length, syncPendingMutations]);
 
   // Adicionar mutação à queue
   const addToQueue = useCallback((mutation: Omit<PendingMutation, 'id' | 'timestamp'>) => {
@@ -120,15 +120,26 @@ export function useOfflineSync() {
 
   // Sincronizar mutações pendentes
   const syncPendingMutations = useCallback(async () => {
-    if (state.pendingMutations.length === 0 || state.isSyncing) return;
+    // Use functional setState to read latest state and avoid stale closure
+    let mutationsToSync: PendingMutation[] = [];
+    let shouldSkip = false;
 
-    setState(prev => ({ ...prev, isSyncing: true }));
+    setState(prev => {
+      if (prev.pendingMutations.length === 0 || prev.isSyncing) {
+        shouldSkip = true;
+        return prev;
+      }
+      mutationsToSync = [...prev.pendingMutations];
+      return { ...prev, isSyncing: true };
+    });
+
+    if (shouldSkip) return;
 
     const { supabase } = await import('@/integrations/supabase/client');
     const successfulIds: string[] = [];
-    const failedMutations: PendingMutation[] = [];
+    const failedCount = { value: 0 };
 
-    for (const mutation of state.pendingMutations) {
+    for (const mutation of mutationsToSync) {
       try {
         switch (mutation.type) {
           case 'create':
@@ -148,7 +159,7 @@ export function useOfflineSync() {
         successfulIds.push(mutation.id);
       } catch (error: unknown) {
         logger.error('Sync failed for mutation:', mutation, error);
-        failedMutations.push(mutation);
+        failedCount.value++;
       }
     }
 
@@ -172,12 +183,12 @@ export function useOfflineSync() {
       toast.success(`${successfulIds.length} alteração(ões) sincronizada(s)`);
     }
 
-    if (failedMutations.length > 0) {
-      toast.error(`${failedMutations.length} alteração(ões) falharam`, {
+    if (failedCount.value > 0) {
+      toast.error(`${failedCount.value} alteração(ões) falharam`, {
         description: 'Tentaremos novamente em breve.',
       });
     }
-  }, [state.pendingMutations, state.isSyncing, queryClient]);
+  }, [queryClient]);
 
   // Limpar queue
   const clearQueue = useCallback(() => {
