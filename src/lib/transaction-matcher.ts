@@ -292,7 +292,7 @@ export function encontrarMatchesParaTransacao(
     }
     
     // Calculate final score (normalized to 0-100)
-    const scoreFinal = Math.min(100, (scoreTotal / pesoTotal) * 100);
+    const scoreFinal = pesoTotal > 0 ? Math.min(100, (scoreTotal / pesoTotal) * 100) : 0;
     
     if (scoreFinal >= config.scoreMinimo) {
       sugestoes.push({
