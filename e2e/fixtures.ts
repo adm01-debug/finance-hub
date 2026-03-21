@@ -307,3 +307,201 @@ export function generatePhone(): string {
   const number = Math.floor(Math.random() * 900000000) + 100000000;
   return `${ddd}${number}`;
 }
+
+// Additional Page Object Models
+
+export class ContasReceberPage {
+  constructor(private page: any) {}
+
+  async goto() {
+    await this.page.goto('/contas-receber');
+  }
+
+  async waitForLoad() {
+    await expect(this.page.getByRole('table')).toBeVisible({ timeout: 10000 });
+  }
+
+  async openCreateModal() {
+    await this.page.getByRole('button', { name: /nova conta|novo|adicionar/i }).click();
+    await expect(this.page.getByRole('dialog')).toBeVisible();
+  }
+
+  async fillContaForm(data: { descricao: string; valor: number; dataVencimento: string }) {
+    await this.page.getByLabel(/descrição/i).fill(data.descricao);
+    await this.page.getByLabel(/valor/i).fill(data.valor.toString());
+    await this.page.getByLabel(/vencimento/i).fill(data.dataVencimento);
+  }
+
+  async submitForm() {
+    await this.page.getByRole('button', { name: /salvar/i }).click();
+  }
+
+  async filterByStatus(status: string) {
+    await this.page.getByRole('combobox', { name: /status/i }).click();
+    await this.page.getByRole('option', { name: new RegExp(status, 'i') }).click();
+  }
+
+  async search(term: string) {
+    await this.page.getByPlaceholder(/buscar/i).fill(term);
+  }
+}
+
+export class FluxoCaixaPage {
+  constructor(private page: any) {}
+
+  async goto() {
+    await this.page.goto('/fluxo-caixa');
+  }
+
+  async waitForLoad() {
+    await expect(this.page.getByText(/saldo|entradas|saídas/i).first()).toBeVisible({ timeout: 10000 });
+  }
+
+  async changePeriod(period: string) {
+    const periodSelect = this.page.getByRole('combobox', { name: /período/i });
+    if (await periodSelect.isVisible()) {
+      await periodSelect.click();
+      await this.page.getByRole('option', { name: new RegExp(period, 'i') }).click();
+    }
+  }
+}
+
+export class ConciliacaoPage {
+  constructor(private page: any) {}
+
+  async goto() {
+    await this.page.goto('/conciliacao');
+  }
+
+  async waitForLoad() {
+    await expect(this.page.getByText(/conciliad|pendente/i).first()).toBeVisible({ timeout: 10000 });
+  }
+
+  async openImportDialog() {
+    const importBtn = this.page.getByRole('button', { name: /importar|upload|extrato/i });
+    if (await importBtn.isVisible()) {
+      await importBtn.click();
+      await expect(this.page.getByRole('dialog')).toBeVisible();
+    }
+  }
+}
+
+export class RelatoriosPage {
+  constructor(private page: any) {}
+
+  async goto() {
+    await this.page.goto('/relatorios');
+  }
+
+  async waitForLoad() {
+    await expect(this.page.getByRole('heading', { name: /relatórios/i })).toBeVisible({ timeout: 10000 });
+  }
+
+  async selectReportType(type: string) {
+    await this.page.getByRole('button', { name: new RegExp(type, 'i') }).click();
+  }
+
+  async waitForReportContent() {
+    await expect(this.page.getByTestId('report-content')).toBeVisible({ timeout: 10000 });
+  }
+}
+
+export class ConfiguracoesPage {
+  constructor(private page: any) {}
+
+  async goto() {
+    await this.page.goto('/configuracoes');
+  }
+
+  async waitForLoad() {
+    await expect(this.page.getByRole('heading', { name: /configurações/i })).toBeVisible({ timeout: 10000 });
+  }
+
+  async switchTab(tabName: string) {
+    const tab = this.page.getByRole('tab', { name: new RegExp(tabName, 'i') })
+      .or(this.page.getByRole('button', { name: new RegExp(tabName, 'i') }));
+    if (await tab.isVisible()) {
+      await tab.click();
+    }
+  }
+}
+
+export class SegurancaPage {
+  constructor(private page: any) {}
+
+  async goto() {
+    await this.page.goto('/seguranca');
+  }
+
+  async waitForLoad() {
+    await expect(this.page.getByRole('heading', { name: /segurança/i })).toBeVisible({ timeout: 10000 });
+  }
+}
+
+// Utility function to test all protected routes redirect when unauthenticated
+export const PROTECTED_ROUTES = [
+  '/dashboard',
+  '/contas-pagar',
+  '/contas-receber',
+  '/clientes',
+  '/fornecedores',
+  '/relatorios',
+  '/configuracoes',
+  '/fluxo-caixa',
+  '/conciliacao',
+  '/boletos',
+  '/notas-fiscais',
+  '/empresas',
+  '/contas-bancarias',
+  '/centro-custos',
+  '/aprovacoes',
+  '/alertas',
+  '/usuarios',
+  '/audit-logs',
+  '/seguranca',
+  '/demonstrativos',
+  '/pagamentos-recorrentes',
+  '/reforma-tributaria',
+  '/asaas',
+  '/bling',
+  '/bitrix24',
+  '/vendedores',
+  '/meu-perfil',
+  '/contratos',
+  '/simulador-antecipacao',
+  '/assinatura-digital',
+  '/comprovante-ocr',
+  '/movimentacoes',
+  '/tesouraria',
+  '/pix-hub',
+  '/orcamento-evento',
+  '/benchmarking',
+  '/expert',
+  '/bi',
+  '/dashboard-empresa',
+  '/dashboard-receber',
+];
+
+// Helper to generate a future date string
+export function futureDate(daysAhead: number): string {
+  const date = new Date();
+  date.setDate(date.getDate() + daysAhead);
+  return date.toISOString().split('T')[0];
+}
+
+// Helper to generate a past date string
+export function pastDate(daysAgo: number): string {
+  const date = new Date();
+  date.setDate(date.getDate() - daysAgo);
+  return date.toISOString().split('T')[0];
+}
+
+// Helper to format currency for Brazilian Real
+export function formatBRL(value: number): string {
+  return value.toFixed(2).replace('.', ',');
+}
+
+// Helper to generate a random monetary value
+export function randomValue(min = 100, max = 10000): number {
+  return Math.round((Math.random() * (max - min) + min) * 100) / 100;
+}
